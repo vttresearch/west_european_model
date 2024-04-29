@@ -1,9 +1,28 @@
 using YAML
+using DataFrames, CSV
 
 
+function read_elecload(loadfile, loadmapping)
+    a = DataFrame(CSV.File(loadfile, 
+                            missingstring = "NA", 
+                            dateformat="yyyy-mm-dd HH:MM:SS"
+                        )
+                )
+                            
+    b = DataFrame(time = a.time)
+
+    regionmap = CSV.File(loadmapping) |> Dict
+    for (key, valcol) in regionmap
+        insertcols!(b, key => a[:,valcol]) 
+    end
+            
+    # filter by time
+
+    return b
+end
 
 
-function readinput(filename, scenario, year)
+function readunits(filename, scenario, year)
 
     # Load YAML data from a file
     inputdata = YAML.load_file(filename)
@@ -28,13 +47,12 @@ function readinput(filename, scenario, year)
     for u1 in unitlist["scenario_units"]
         
         u = createunitstruct(u1)
-        print(u)
         d1 = convert_unit(u, unittypes["scenario_unittypes"], 
                             fuels["scenario_fuels"], 
                             nodes)
         units_spi = mergedicts(units_spi,d1)
     end 
 
-    return units_spi
+    return units_spi, nodes
 end
 

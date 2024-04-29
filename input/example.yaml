@@ -23,8 +23,10 @@ unittypes:
     scenario_unittypes:
       nuclear:
         efficiency: 0.35
+        vom_cost: 4
       OCGT:
         efficiency: 0.38
+        vom_cost: 4
 fuels:
   - scenario: Distributed Energy
     year: 2040
