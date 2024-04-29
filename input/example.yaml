@@ -1,0 +1,47 @@
+receipt: "Oz-Ware Purchase Invoice"
+date: 2012-08-06
+customer:
+  given: Dorothy
+  family: Gale
+units:
+  - scenario: Distributed Energy
+    year: 2040
+    scenario_units:
+    - name:
+      bidding_zone: FI00
+      type: nuclear
+      fuel: nuclear
+      eleccapa: 1600
+    - name:
+      bidding_zone: FI00
+      type: OCGT
+      fuel: gas
+      eleccapa: 1600
+unittypes:
+  - scenario: Distributed Energy
+    year: 2040
+    scenario_unittypes:
+      nuclear:
+        efficiency: 0.35
+      OCGT:
+        efficiency: 0.38
+fuels:
+  - scenario: Distributed Energy
+    year: 2040
+    scenario_fuels:
+      nuclear:
+        price: 1.35
+      gas:
+        price: 38.0
+lines:
+  - scenario: Distributed Energy
+    year: 2040
+    scenario_lines:
+      - from_zone: FI00
+        to_zone: SE03
+        export_capacity: 700
+        import_capacity: 700
+        
+
+
+
