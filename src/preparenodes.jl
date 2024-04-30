@@ -3,7 +3,6 @@ using SpineInterface
 
 function preparenodes(nodes, elecload, heatload, cf_onshore)
 
-
     # data structure for spinedb
     nodes_spi = Dict{Symbol,Any}()
 
@@ -13,11 +12,15 @@ function preparenodes(nodes, elecload, heatload, cf_onshore)
             d1 = make_commoditynode(n, elecload)
         elseif value["type"] == "fuel"
             d1 = make_fuelnode(n)
-        elseif value["type"] == "vre"
-            d1 = make_vrenode(n, nothing)
+        elseif value["type"] == "onshore"
+            d1 = make_vrenode(n, value, cf_onshore)
+        elseif value["type"] == "pv"
+            d1 = make_vrenode(n, value, cf_pv)
         end
         nodes_spi = mergedicts(nodes_spi,d1)
     end
+
+    return nodes_spi
 end
 
 function make_commoditynode(node, loads)
@@ -38,7 +41,36 @@ function make_commoditynode(node, loads)
             ["node__stochastic_structure", [node, "deterministic"]],
         ],
         :object_parameter_values => [
-            ["node", node, "demand", unparse_db_value(-1.0 * a)],
+            ["node", node, "demand", unparse_db_value(1.0 * a)],
+        ]
+    )
+
+    return data1
+end
+
+function make_vrenode(node, nodeprops, cf)
+
+    if hasproperty(cf, node)
+        a = cf[:,["time", node]]
+        a = convert_timeseries(a, node)
+    else
+        a = 0
+    end
+
+    # calculate inflow to node
+    a = -1.0 * a * nodeprops["unit_capacity"]
+
+    data1 = Dict(
+        :objects => [
+            ["node", node],
+        ],
+        :relationships => [
+            ["node__temporal_block", [node, "hourly"]],
+            ["node__stochastic_structure", [node, "deterministic"]],
+        ],
+        :object_parameter_values => [
+            ["node", node, "demand", unparse_db_value(a)],
+            ["node", node, "nodal_balance_sense", ">="]
         ]
     )
 
@@ -63,5 +95,28 @@ function make_fuelnode(node)
     return data1
 end
 
-function make_vrenode(node, cf)
+function make_reservoirnode(node, nodeprops, inflow)
+
+    if hasproperty(inflow, node)
+        a = inflow[:,["time", node]]
+        a = -1.0 * convert_timeseries(a, node)
+    else
+        a = 0
+    end
+
+    data1 = Dict(
+        :objects => [
+            ["node", node],
+        ],
+        :relationships => [
+            ["node__temporal_block", [node, "hourly"]],
+            ["node__stochastic_structure", [node, "deterministic"]],
+        ],
+        :object_parameter_values => [
+            ["node", node, "demand", unparse_db_value(a)],
+            ["node", node, "has_state", true],
+            ["node", node, "node_state_cap", nodeprops["reservoir_capacity"]],
+        ]
+    )
+
 end

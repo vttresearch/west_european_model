@@ -11,12 +11,16 @@ units:
       bidding_zone: FI00
       type: nuclear
       fuel: nuclear
-      eleccapa: 1600
+      eleccapa: 4200
     - name:
       bidding_zone: FI00
       type: OCGT
       fuel: gas
-      eleccapa: 1600
+      eleccapa: 14200
+    - name:
+      bidding_zone: FI00
+      type: onshore
+      eleccapa: 4200
 unittypes:
   - scenario: Distributed Energy
     year: 2040
@@ -27,6 +31,10 @@ unittypes:
       OCGT:
         efficiency: 0.38
         vom_cost: 4
+      onshore:
+        vom_cost: 2
+      pv:
+        vom_cost: 0
 fuels:
   - scenario: Distributed Energy
     year: 2040

@@ -1,5 +1,5 @@
 
-using SpineInterface
+using SpineInterface, SpineOpt
 using Dates
 using DataFrames
 using Printf

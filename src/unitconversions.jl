@@ -9,6 +9,10 @@ struct pv_unit <: unit
     data::Dict
 end
 
+struct onshore_unit <: unit
+    data::Dict
+end
+
 struct ocgt_unit <: unit
     data::Dict
 end
@@ -20,7 +24,9 @@ end
 function createunitstruct(u1::Dict)
     if u1["type"] == "nuclear" return nuclear_unit(u1)
     elseif u1["type"] == "PV" return pv_unit(u1)
+    elseif u1["type"] == "onshore" return onshore_unit(u1)
     elseif u1["type"] == "OCGT" return ocgt_unit(u1)
+
     end
 
 end
@@ -36,6 +42,7 @@ end
 function createbzone_fuelname(bzone, fuel)
     return "n_" * fuel
 end
+
 
 function basic_generator_unit(u::unit, unittypes, fuels)
 
@@ -167,5 +174,73 @@ function convert_unit(u::hydro_reservoir_unit, unittypes, fuels, nodes)
         )
     end
 
+end
+
+function basic_vre_unit(u::unit, unittypes, nodes)
+
+    unitname = createunitname(u.data["type"], u.data["bidding_zone"])
+    elecnode = createbzone_elecname(u.data["bidding_zone"])
+    vrenode = "n_" * u.data["bidding_zone"] * "_" * u.data["type"]
+
+    vom_cost = unittypes[u.data["type"]]["vom_cost"]
+
+    data1 = Dict(
+        :objects => [["unit", unitname], ],
+        :relationships => [
+            ["unit__to_node", [unitname, elecnode]],
+            ["unit__from_node", [unitname, vrenode]],
+            ["unit__node__node", [unitname, elecnode, vrenode]],
+            ["units_on__temporal_block", [unitname, "hourly"]],
+            ["units_on__stochastic_structure", [unitname, "deterministic"]],
+        ],
+        :relationship_parameter_values => [
+            ["unit__to_node", [unitname, elecnode], "unit_capacity", u.data["eleccapa"]],
+            ["unit__to_node", [unitname, elecnode], "vom_cost", vom_cost], 
+            ["unit__node__node", [unitname, elecnode, vrenode], 
+                "fix_ratio_out_in_unit_flow", 1.0]    
+        ]
+    )
+
+    # specify the nodes related to this unit
+    if !haskey(nodes, elecnode)
+        nodes[elecnode] = Dict("type" => "elec")
+    end
+    if !haskey(nodes, vrenode)
+        nodes[vrenode] = Dict("type" => u.data["type"],
+                            "unit_capacity" => u.data["eleccapa"]
+                                )
+    end
+
+    return data1
+end
+
+function convert_unit(u::onshore_unit, unittypes, fuels, nodes)
+    return basic_vre_unit(u, unittypes, nodes)
+end
+
+
+function convert_line(line)
+
+    linename = "l_" * l["from_zone"] * "_" * l["to_zone"] 
+
+    data1 = Dict(
+        :objects => [["connection", linename]],
+        :relationships => [
+            ["connection__from_node", [linename, line["from_zone"]]],
+            ["connection__from_node", [linename, line["to_zone"]]],
+            ["connection__to_node", [linename, line["to_zone"]]],
+            ["connection__to_node", [linename, line["to_zone"]]],
+            ["connection__node__node", [linename, line["to_zone"], line["to_zone"]]],
+            ["connection__node__node", [linename, line["to_zone"], line["to_zone"]]],
+        ],
+        :relationship_parameter_values => [
+            ["connection__node__node", [linename, line["to_zone"], line["to_zone"]], "fix_ratio_out_in_connection_flow", 0.99],
+            ["connection__node__node", [linename, line["to_zone"], line["to_zone"]], "fix_ratio_out_in_connection_flow", 0.99],
+            ["connection__to_node", [linename, line["to_zone"]], "connection_capacity", 500],
+            ["connection__to_node", [linename, line["to_zone"]], "connection_capacity", 500]
+            ["connection__from_node", [linename, line["to_zone"]], "connection_capacity", 500],
+            ["connection__from_node", [linename, line["to_zone"]], "connection_capacity", 500],  
+        ]
+    )
 end
 
