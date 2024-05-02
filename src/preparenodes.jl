@@ -1,7 +1,7 @@
 
 using SpineInterface
 
-function preparenodes(nodes, elecload, heatload, cf_onshore)
+function preparenodes(nodes, elecload::DataFrame, heatload, cf_onshore::DataFrame, hydroinflow::DataFrame)
 
     # data structure for spinedb
     nodes_spi = Dict{Symbol,Any}()
@@ -16,6 +16,8 @@ function preparenodes(nodes, elecload, heatload, cf_onshore)
             d1 = make_vrenode(n, value, cf_onshore)
         elseif value["type"] == "pv"
             d1 = make_vrenode(n, value, cf_pv)
+        elseif value["type"] == "reservoir"
+            d1 = make_hydronode(n, value, hydroinflow)
         end
         nodes_spi = mergedicts(nodes_spi,d1)
     end
@@ -95,7 +97,7 @@ function make_fuelnode(node)
     return data1
 end
 
-function make_reservoirnode(node, nodeprops, inflow)
+function make_hydronode(node, nodeprops, inflow::DataFrame)
 
     if hasproperty(inflow, node)
         a = inflow[:,["time", node]]
@@ -103,6 +105,8 @@ function make_reservoirnode(node, nodeprops, inflow)
     else
         a = 0
     end
+
+    # search also the minimum and maximum time-dependent reservoir levels
 
     data1 = Dict(
         :objects => [
@@ -115,8 +119,9 @@ function make_reservoirnode(node, nodeprops, inflow)
         :object_parameter_values => [
             ["node", node, "demand", unparse_db_value(a)],
             ["node", node, "has_state", true],
-            ["node", node, "node_state_cap", nodeprops["reservoir_capacity"]],
+            ["node", node, "node_state_cap", get(nodeprops, "reservoir_capacity", 0) ],
         ]
     )
 
+    return data1
 end

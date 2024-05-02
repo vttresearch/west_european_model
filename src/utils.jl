@@ -4,6 +4,19 @@ using Dates
 using DataFrames
 using Printf
 
+function mergedicts(dicts...)
+    n = length(dicts)
+
+    a = mergedicts(dicts[1],dicts[2])
+
+    for i = 3:n
+        a = mergedicts(a, dicts[i])
+    end
+    
+    return a
+end
+
+
 function mergedicts(dict1,dict2)
 
     # Find keys in dict1 only

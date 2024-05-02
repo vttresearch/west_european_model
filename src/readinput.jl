@@ -4,15 +4,17 @@ using DataFrames, CSV
 
 function read_timeseries(loadfile, loadmapping)
     a = DataFrame(CSV.File(loadfile, 
-                            missingstring = "NA", 
-                            dateformat="yyyy-mm-dd HH:MM:SS")
+                            missingstring = "", 
+                            dateformat="yyyy-mm-dd HH:MM:SS",
+                            stringtype = String)
                 )
                             
     b = DataFrame(time = a.time)
 
     regionmap = CSV.File(loadmapping) |> Dict
     for (key, valcol) in regionmap
-        insertcols!(b, key => a[:,valcol]) 
+        println(last(a[:,valcol],6 ))
+        insertcols!(b, key =>  a[:,valcol])
     end
             
     # filter by time
@@ -21,6 +23,10 @@ function read_timeseries(loadfile, loadmapping)
     b = subset(b, :time => ByRow(>=(begintime)), 
                     :time => ByRow(<(endtime))             
                 )
+
+    # convert values to float
+    #b = transform(b, Not(:time) .=> x -> parse.(Float32, x), renamecols = false)
+
     return b
 end
 
@@ -39,6 +45,7 @@ function readunits(filename, scenario, year)
     # extract the list of fuel definitions for the scenario
     fuels = filter(x->x["year"] == year && x["scenario"] == scenario, 
         inputdata["fuels"])[1]
+    
 
     # data structure for spinedb
     units_spi = Dict{Symbol,Any}()
@@ -50,11 +57,13 @@ function readunits(filename, scenario, year)
     for u1 in unitlist["scenario_units"]
         
         u = createunitstruct(u1)
+        println(u1)
         d1 = convert_unit(u, unittypes["scenario_unittypes"], 
                             fuels["scenario_fuels"], 
                             nodes)
         units_spi = mergedicts(units_spi,d1)
     end 
+
 
     return units_spi, nodes
 end
@@ -74,7 +83,7 @@ function readlines(filename, scenario, year)
     # for each unit create the data structure    
     for l in linelist["scenario_lines"]
         d1 = convert_line(l)
-        lines_spi = mergedicts(units_spi,d1)
+        lines_spi = mergedicts(lines_spi,d1)
     end 
 
     return lines_spi

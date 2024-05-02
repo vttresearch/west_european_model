@@ -52,16 +52,22 @@ function makemodel(filenames)
     cf_onshore = read_timeseries(filenames["windonshorefile"], 
                                 filenames["windmappingfile"])
 
+    # read hydro inflow profiles
+    hydroinflow = read_timeseries(filenames["hydroinflowfile"], 
+                                    filenames["hydromappingfile"])
+
+    println(first(hydroinflow, 6))
+
     # read units from the model specification file and create spineopt strucutres
     units_spi, nodes = readunits(filenames["mainmodel"], "Distributed Energy", 2040)
 
     # create spineopt strucutres for nodes
-    nodes_spi = preparenodes(nodes, elecload, nothing, cf_onshore)
+    nodes_spi = preparenodes(nodes, elecload, nothing, cf_onshore, hydroinflow)
 
     # create spineopt structures for transmission lines
-    # lines_spi = readlines(filenames["mainmodel"], "Distributed Energy", 2040)
+    lines_spi = readlines(filenames["mainmodel"], "Distributed Energy", 2040)
 
-    mdata = mergedicts(units_spi, nodes_spi)
+    mdata = mergedicts(units_spi, nodes_spi, lines_spi)
     mdata = mergedicts(mdata, basic_model())
 
     create_spine_db(mdata)

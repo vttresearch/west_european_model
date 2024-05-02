@@ -22,10 +22,13 @@ struct hydro_reservoir_unit <: unit
 end
 
 function createunitstruct(u1::Dict)
+
+    println(u1["type"])
     if u1["type"] == "nuclear" return nuclear_unit(u1)
     elseif u1["type"] == "PV" return pv_unit(u1)
     elseif u1["type"] == "onshore" return onshore_unit(u1)
     elseif u1["type"] == "OCGT" return ocgt_unit(u1)
+    elseif u1["type"] == "reservoir" return hydro_reservoir_unit(u1)
 
     end
 
@@ -139,11 +142,11 @@ function convert_unit(u::ocgt_unit, unittypes, fuels, nodes)
     return data1
 end
 
-function convert_unit(u::hydro_reservoir_unit, unittypes, fuels, nodes)
+function basic_hydro_unit(u::unit, unittypes, nodes)
 
     unitname = createunitname(u.data["type"], u.data["bidding_zone"])
     elecnode = createbzone_elecname(u.data["bidding_zone"])
-    hydronode = "n_" * u.data["bidding_zone"] * "_reservoir"
+    hydronode = "n_" * u.data["bidding_zone"] * "_" * u.data["type"]
 
     vom_cost = unittypes[u.data["type"]]["vom_cost"]
 
@@ -169,11 +172,18 @@ function convert_unit(u::hydro_reservoir_unit, unittypes, fuels, nodes)
         nodes[elecnode] = Dict("type" => "elec")
     end
     if !haskey(nodes, hydronode)
-        nodes[hydronode] = Dict("type" => "reservoir",
+        nodes[hydronode] = Dict("type" => u.data["type"],
                                 "reservoir_capacity" => u.data["reservoir_capacity"]
         )
     end
 
+    return data1
+end
+
+function convert_unit(u::hydro_reservoir_unit, unittypes, fuels, nodes)
+
+    return basic_hydro_unit(u, unittypes, nodes)
+    
 end
 
 function basic_vre_unit(u::unit, unittypes, nodes)
@@ -221,25 +231,26 @@ end
 
 function convert_line(line)
 
-    linename = "l_" * l["from_zone"] * "_" * l["to_zone"] 
+    linename = "L_" * line["from_zone"] * "_" * line["to_zone"] 
+    to_zone_node = createbzone_elecname(line["to_zone"])
+    from_zone_node = createbzone_elecname(line["from_zone"])
 
     data1 = Dict(
         :objects => [["connection", linename]],
         :relationships => [
-            ["connection__from_node", [linename, line["from_zone"]]],
-            ["connection__from_node", [linename, line["to_zone"]]],
-            ["connection__to_node", [linename, line["to_zone"]]],
-            ["connection__to_node", [linename, line["to_zone"]]],
-            ["connection__node__node", [linename, line["to_zone"], line["to_zone"]]],
-            ["connection__node__node", [linename, line["to_zone"], line["to_zone"]]],
+            ["connection__from_node", [linename, from_zone_node]],
+            ["connection__from_node", [linename, to_zone_node]],
+            ["connection__to_node", [linename, to_zone_node]],
+            ["connection__to_node", [linename, from_zone_node]],
+            ["connection__node__node", [linename, from_zone_node, to_zone_node]],
+            ["connection__node__node", [linename, to_zone_node, from_zone_node]],
         ],
         :relationship_parameter_values => [
-            ["connection__node__node", [linename, line["to_zone"], line["to_zone"]], "fix_ratio_out_in_connection_flow", 0.99],
-            ["connection__node__node", [linename, line["to_zone"], line["to_zone"]], "fix_ratio_out_in_connection_flow", 0.99],
-            ["connection__to_node", [linename, line["to_zone"]], "connection_capacity", 500],
-            ["connection__to_node", [linename, line["to_zone"]], "connection_capacity", 500]
-            ["connection__from_node", [linename, line["to_zone"]], "connection_capacity", 500],
-            ["connection__from_node", [linename, line["to_zone"]], "connection_capacity", 500],  
+            ["connection__node__node", [linename, to_zone_node, from_zone_node], "fix_ratio_out_in_connection_flow", 0.99],
+            ["connection__node__node", [linename, from_zone_node, to_zone_node], "fix_ratio_out_in_connection_flow", 0.99],
+            ["connection__to_node", [linename, to_zone_node], "connection_capacity", line["export_capacity"]],
+            ["connection__to_node", [linename, from_zone_node], "connection_capacity", line["import_capacity"]],
+     
         ]
     )
 end

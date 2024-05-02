@@ -21,6 +21,21 @@ units:
       bidding_zone: FI00
       type: onshore
       eleccapa: 4200
+    - name:
+      bidding_zone: FI00
+      type: reservoir
+      eleccapa: 2200
+      reservoir_capacity: 15000
+    - name:
+      bidding_zone: SE03
+      type: nuclear
+      fuel: nuclear
+      eleccapa: 6200
+    - name:
+      bidding_zone: SE03
+      type: OCGT
+      fuel: gas
+      eleccapa: 24200
 unittypes:
   - scenario: Distributed Energy
     year: 2040
@@ -35,6 +50,8 @@ unittypes:
         vom_cost: 2
       pv:
         vom_cost: 0
+      reservoir:
+        vom_cost: 1
 fuels:
   - scenario: Distributed Energy
     year: 2040
