@@ -1,6 +1,18 @@
 
 abstract type unit end
 
+struct backpressure_unit <: unit
+    data::Dict
+end
+
+struct boiler_unit <: unit
+    data::Dict
+end
+
+struct hp_unit <: unit
+    data::Dict
+end
+
 struct nuclear_unit <: unit
     data::Dict
 end
@@ -23,12 +35,15 @@ end
 
 function createunitstruct(u1::Dict)
 
-    println(u1["type"])
     if u1["type"] == "nuclear" return nuclear_unit(u1)
     elseif u1["type"] == "PV" return pv_unit(u1)
     elseif u1["type"] == "onshore" return onshore_unit(u1)
     elseif u1["type"] == "OCGT" return ocgt_unit(u1)
+    elseif u1["type"] == "CCGT" return ocgt_unit(u1)
     elseif u1["type"] == "reservoir" return hydro_reservoir_unit(u1)
+    elseif u1["type"] == "boiler" return boiler_unit(u1)
+    elseif u1["type"] == "backpressure" return backpressure_unit(u1)
+    elseif u1["type"] == "eleboiler" return hp_unit(u1)
 
     end
 
@@ -46,6 +61,9 @@ function createbzone_fuelname(bzone, fuel)
     return "n_" * fuel
 end
 
+function createheatnodename(bzone, heatarea)
+    return "n_" * bzone * (isnothing(heatarea) ? "" : "_" * heatarea) * "_dheat"
+end
 
 function basic_generator_unit(u::unit, unittypes, fuels)
 
@@ -54,6 +72,7 @@ function basic_generator_unit(u::unit, unittypes, fuels)
     fuelnode = createbzone_fuelname(u.data["bidding_zone"], u.data["fuel"])
 
     vom_cost = unittypes[u.data["type"]]["vom_cost"]
+    fuelcost = fuels[u.data["fuel"]]["price"]
 
     data1 = Dict(
         :objects => [["unit", unitname], ],
@@ -67,21 +86,137 @@ function basic_generator_unit(u::unit, unittypes, fuels)
         :relationship_parameter_values => [
             ["unit__to_node", [unitname, elecnode], "unit_capacity", u.data["eleccapa"]],
             ["unit__to_node", [unitname, elecnode], "vom_cost", vom_cost],    
+            ["unit__from_node", [unitname, fuelnode], "vom_cost", fuelcost],
         ]
     )
 
     return unitname, elecnode, fuelnode, data1
 end
 
+function basic_boiler_unit(u::unit, unittypes, fuels, nodes)
+
+    unitname = createunitname(u.data["type"], u.data["bidding_zone"])
+    heatnode = createheatnodename(u.data["bidding_zone"], u.data["heat_area"])
+    fuelnode = createbzone_fuelname(u.data["bidding_zone"], u.data["fuel"])
+
+    vom_cost = unittypes[u.data["type"]]["vom_cost"]
+    fuelcost = fuels[u.data["fuel"]]["price"]
+    efficiency = unittypes[u.data["type"]]["efficiency_heat"]
+
+    data1 = Dict(
+        :objects => [["unit", unitname], ],
+        :relationships => [
+            ["unit__to_node", [unitname, heatnode]],
+            ["unit__from_node", [unitname, fuelnode]],
+            ["unit__node__node", [unitname, heatnode, fuelnode]],
+            ["units_on__temporal_block", [unitname, "hourly"]],
+            ["units_on__stochastic_structure", [unitname, "deterministic"]],
+        ],
+        :relationship_parameter_values => [
+            ["unit__to_node", [unitname, heatnode], "unit_capacity", u.data["heatcapa"]],
+            ["unit__to_node", [unitname, heatnode], "vom_cost", vom_cost],    
+            ["unit__from_node", [unitname, fuelnode], "vom_cost", fuelcost],
+            ["unit__node__node", [unitname, heatnode, fuelnode], 
+                "fix_ratio_out_in_unit_flow", efficiency],
+        ]
+    )
+
+    # specify the nodes related to this unit
+    if !haskey(nodes, heatnode)
+        nodes[elecnode] = Dict("type" => "dheat")
+    end
+    if !haskey(nodes, fuelnode)
+        nodes[fuelnode] = Dict("type" => "fuel")
+    end
+
+    return data1
+end
+
+
+function convert_unit(u::boiler_unit, unittypes, fuels, nodes)
+
+    return basic_boiler_unit(u, unittypes, fuels, nodes)
+
+end
+
+function convert_unit(u::hp_unit, unittypes, fuels, nodes)
+
+    unitname = createunitname(u.data["type"], u.data["bidding_zone"])
+    heatnode = createheatnodename(u.data["bidding_zone"], u.data["heat_area"])
+    elecnode = createbzone_elecname(u.data["bidding_zone"])
+
+    vom_cost = unittypes[u.data["type"]]["vom_cost"]
+    efficiency = unittypes[u.data["type"]]["efficiency_heat"]
+
+    data1 = Dict(
+        :objects => [["unit", unitname], ],
+        :relationships => [
+            ["unit__to_node", [unitname, heatnode]],
+            ["unit__from_node", [unitname, elecnode]],
+            ["unit__node__node", [unitname, heatnode, elecnode]],
+            ["units_on__temporal_block", [unitname, "hourly"]],
+            ["units_on__stochastic_structure", [unitname, "deterministic"]],
+        ],
+        :relationship_parameter_values => [
+            ["unit__to_node", [unitname, heatnode], "unit_capacity", u.data["heatcapa"]],
+            ["unit__to_node", [unitname, heatnode], "vom_cost", vom_cost],    
+            ["unit__node__node", [unitname, heatnode, elecnode], 
+                "fix_ratio_out_in_unit_flow", efficiency],
+        ]
+    )
+
+    # specify the nodes related to this unit
+    if !haskey(nodes, heatnode)
+        nodes[elecnode] = Dict("type" => "dheat")
+    end
+    if !haskey(nodes, elecnode)
+        nodes[fuelnode] = Dict("type" => "elec")
+    end
+
+    return data1
+end
+
+function convert_unit(u::backpressure_unit, unittypes, fuels, nodes)
+
+    unitname, elecnode, fuelnode, data1 = basic_generator_unit(u, unittypes, fuels)
+    heatnode = createheatnodename(u.data["bidding_zone"], u.data["heat_area"])
+    efficiency_elec = unittypes[u.data["type"]]["efficiency_elec"]
+    p_h_ratio = unittypes[u.data["type"]]["power_heat_ratio"]
+
+    # additional unit data related to this unittype
+    data2 = Dict(
+        :relationships => [["unit__to_node", [unitname, heatnode]],
+                            ["unit__node__node", [unitname, elecnode, heatnode]],
+        ]
+        :relationship_parameter_values => [
+            ["unit__to_node", [unitname, elecnode], "minimum_operating_point", 0.4],
+            ["unit__node__node", [unitname, elecnode, fuelnode], 
+                "fix_ratio_out_in_unit_flow", efficiency_elec],
+            ["unit__node__node", [unitname, elecnode, heatnode], 
+                "fix_ratio_out_out_unit_flow", p_h_ratio]  
+        ]
+    )
+
+    data1 = mergedicts(data1, data2)
+
+    # specify the nodes related to this unit
+    if !haskey(nodes, elecnode)
+        nodes[elecnode] = Dict("type" => "elec")
+    end
+    if !haskey(nodes, fuelnode)
+        nodes[fuelnode] = Dict("type" => "fuel")
+    end
+    if !haskey(nodes, heatnode)
+        nodes[fuelnode] = Dict("type" => "dheat")
+    end
+    return data1
+end
 
 function convert_unit(u::nuclear_unit, unittypes, fuels, nodes)
 
     unitname, elecnode, fuelnode, data1 = basic_generator_unit(u, unittypes, fuels)
-
     efficiency = unittypes[u.data["type"]]["efficiency"]
-    fuelcost = fuels[u.data["fuel"]]["price"]
     
-
     # additional unit data related to this unittype
     data2 = Dict(
         :object_parameter_values => [
@@ -89,7 +224,6 @@ function convert_unit(u::nuclear_unit, unittypes, fuels, nodes)
         ],
         :relationship_parameter_values => [
             ["unit__to_node", [unitname, elecnode], "minimum_operating_point", 0.7],
-            ["unit__from_node", [unitname, fuelnode], "vom_cost", fuelcost],
             ["unit__node__node", [unitname, elecnode, fuelnode], 
                 "fix_ratio_out_in_unit_flow", efficiency] 
         ]
@@ -112,10 +246,8 @@ end
 function convert_unit(u::ocgt_unit, unittypes, fuels, nodes)
 
     unitname, elecnode, fuelnode, data1 = basic_generator_unit(u, unittypes, fuels)
-
     efficiency = unittypes[u.data["type"]]["efficiency"]
-    fuelcost = fuels[u.data["fuel"]]["price"]
-
+  
       # additional unit data related to this unittype
       data2 = Dict(
         :object_parameter_values => [
@@ -123,7 +255,6 @@ function convert_unit(u::ocgt_unit, unittypes, fuels, nodes)
         ],
         :relationship_parameter_values => [
             ["unit__to_node", [unitname, elecnode], "minimum_operating_point", 0.4],
-            ["unit__from_node", [unitname, fuelnode], "vom_cost", fuelcost],
             ["unit__node__node", [unitname, elecnode, fuelnode], 
                 "fix_ratio_out_in_unit_flow", efficiency] 
         ]
@@ -168,6 +299,7 @@ function basic_hydro_unit(u::unit, unittypes, nodes)
     )
 
     # specify the nodes related to this unit
+    # node type is according to the specific hydro type
     if !haskey(nodes, elecnode)
         nodes[elecnode] = Dict("type" => "elec")
     end

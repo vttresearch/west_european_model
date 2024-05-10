@@ -3,6 +3,7 @@ using SpineInterface, SpineOpt
 using Dates
 using DataFrames
 using Printf
+using Plots
 
 function mergedicts(dicts...)
     n = length(dicts)
@@ -63,9 +64,9 @@ function convert_timeseries(x::DataFrame, valcol = :value)
     y = TimeSeries(x[:,:time], x[:,valcol], false, false)     
 end
 
-#function plot_TimeSeries(x::TimeSeries)
-#    plot(x.indexes, x.values)
-#end
+function plot_TimeSeries(x::TimeSeries)
+    plot(x.indexes, x.values)
+end
 
 function tssum(x::TimeSeries)
     return sum(x.values)

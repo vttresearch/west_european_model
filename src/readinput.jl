@@ -2,18 +2,24 @@ using YAML
 using DataFrames, CSV
 
 
-function read_timeseries(loadfile, loadmapping)
-    a = DataFrame(CSV.File(loadfile, 
+function read_timeseries(filename, mappingfile, attribute=nothing)
+    
+    #original data
+    a = DataFrame(CSV.File(filename, 
                             missingstring = "", 
                             dateformat="yyyy-mm-dd HH:MM:SS",
                             stringtype = String)
                 )
-                            
+    # filter original data
+    if !isnothing(attribute)
+        a = subset(a, attribute[1] => ByRow(==(attribute[2])))
+    end
+
     b = DataFrame(time = a.time)
 
-    regionmap = CSV.File(loadmapping) |> Dict
+    # read the columns mapping file and select columns
+    regionmap = CSV.File(mappingfile) |> Dict
     for (key, valcol) in regionmap
-        println(last(a[:,valcol],6 ))
         insertcols!(b, key =>  a[:,valcol])
     end
             

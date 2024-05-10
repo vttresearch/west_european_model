@@ -1,7 +1,7 @@
 
 using SpineInterface
 
-function preparenodes(nodes, elecload::DataFrame, heatload, cf_onshore::DataFrame, hydroinflow::DataFrame)
+function preparenodes(nodes, ts_data)
 
     # data structure for spinedb
     nodes_spi = Dict{Symbol,Any}()
@@ -9,15 +9,19 @@ function preparenodes(nodes, elecload::DataFrame, heatload, cf_onshore::DataFram
     for (n,value) in nodes
         
         if value["type"] == "elec"
-            d1 = make_commoditynode(n, elecload)
+            d1 = make_commoditynode(n, ts_data["elecload"])
+        elseif value["type"] == "dheat"
+                d1 = make_commoditynode(n, ts_data["heatload"])
         elseif value["type"] == "fuel"
             d1 = make_fuelnode(n)
         elseif value["type"] == "onshore"
-            d1 = make_vrenode(n, value, cf_onshore)
+            d1 = make_vrenode(n, value, ts_data["cf_onshore"])
         elseif value["type"] == "pv"
-            d1 = make_vrenode(n, value, cf_pv)
+            d1 = make_vrenode(n, value, ts_data["cf_pv"])
         elseif value["type"] == "reservoir"
-            d1 = make_hydronode(n, value, hydroinflow)
+            d1 = make_hydronode(n, value, ts_data["hydroinflow"], 
+                                ts_data["hydrolowerlimits"],
+                                ts_data["hydroupperlimits"])
         end
         nodes_spi = mergedicts(nodes_spi,d1)
     end
@@ -97,8 +101,11 @@ function make_fuelnode(node)
     return data1
 end
 
-function make_hydronode(node, nodeprops, inflow::DataFrame)
+function make_hydronode(node, nodeprops, inflow::DataFrame,
+                        lowerlimits::DataFrame,
+                        upperlimits::DataFrame)
 
+    # search reservoir inflow from data
     if hasproperty(inflow, node)
         a = inflow[:,["time", node]]
         a = -1.0 * convert_timeseries(a, node)
@@ -107,6 +114,18 @@ function make_hydronode(node, nodeprops, inflow::DataFrame)
     end
 
     # search also the minimum and maximum time-dependent reservoir levels
+    if hasproperty(lowerlimits, node)
+        lolim = lowerlimits[:,["time", node]]
+        lolim = convert_timeseries(lolim, node)
+    else
+        lolim = 0
+    end
+    if hasproperty(upperlimits, node)
+        ulim = upperlimits[:,["time", node]]
+        ulim = convert_timeseries(ulim, node)
+    else
+        ulim = get(nodeprops, "reservoir_capacity", 0)
+    end
 
     data1 = Dict(
         :objects => [
@@ -119,7 +138,8 @@ function make_hydronode(node, nodeprops, inflow::DataFrame)
         :object_parameter_values => [
             ["node", node, "demand", unparse_db_value(a)],
             ["node", node, "has_state", true],
-            ["node", node, "node_state_cap", get(nodeprops, "reservoir_capacity", 0) ],
+            ["node", node, "node_state_cap", unparse_db_value(ulim)],
+            ["node", node, "node_state_min", unparse_db_value(lolim)]
         ]
     )
 
