@@ -40,7 +40,7 @@ function basic_model()
             #["temporal_block", "hourly", "resolution", Dict("type" => "duration", "data" => "1h")],
             #["temporal_block", "hourly", "block_end", Dict("type" => "duration", "data" => "12D")],
             
-            ["output", "unit_flow", "output_resolution", Dict("type" => "duration", "data" => "1h")],
+            #["output", "unit_flow", "output_resolution", Dict("type" => "duration", "data" => "1h")],
             #["output", "variable_om_costs", "output_resolution", Dict("type" => "duration", "data" => "2D")],
             ["model", "instance", "db_mip_solver", "HiGHS.jl"],
             ["model", "instance", "db_lp_solver", "HiGHS.jl"],
@@ -62,6 +62,10 @@ function makemodel(filenames)
     # read the onshore wind cf for bidding zones
     ts_data["cf_onshore"] = read_timeseries(filenames["windonshorefile"], 
                                 filenames["windmappingfile"])
+
+    # read the PV cf for bidding zones
+    ts_data["cf_pv"] = read_timeseries(filenames["pvfile"], 
+                                filenames["pvmappingfile"])
 
     # read hydro inflow profiles
     ts_data["hydroinflow"] = read_timeseries(filenames["hydroinflowfile"], 

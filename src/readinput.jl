@@ -52,7 +52,11 @@ function readunits(filename, scenario, year)
     fuels = filter(x->x["year"] == year && x["scenario"] == scenario, 
         inputdata["fuels"])[1]
     
-
+    # extract the dictionary of parameters for the scenario
+    params = filter(x->x["year"] == year && x["scenario"] == scenario, 
+                    inputdata["parameters"])[1]["scenario_parameters"]
+    println(params)
+    
     # data structure for spinedb
     units_spi = Dict{Symbol,Any}()
 
@@ -66,7 +70,8 @@ function readunits(filename, scenario, year)
         println(u1)
         d1 = convert_unit(u, unittypes["scenario_unittypes"], 
                             fuels["scenario_fuels"], 
-                            nodes)
+                            nodes,
+                            params)
         units_spi = mergedicts(units_spi,d1)
     end 
 
@@ -95,4 +100,15 @@ function readlines(filename, scenario, year)
     return lines_spi
 end
 
+function readparams(filename, scenario, year)
+
+    # Load YAML data from a file
+    inputdata = YAML.load_file(filename)
+
+    # extract the list of units for the scenario
+    params1 = filter(x->x["year"] == year && x["scenario"] == scenario, 
+                    inputdata["parameters"])[1]
+    
+    return params1["scenario_parameters"]
+end
 

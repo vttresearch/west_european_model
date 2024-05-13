@@ -7,22 +7,25 @@ function preparenodes(nodes, ts_data)
     nodes_spi = Dict{Symbol,Any}()
 
     for (n,value) in nodes
-        
         if value["type"] == "elec"
             d1 = make_commoditynode(n, ts_data["elecload"])
         elseif value["type"] == "dheat"
-                d1 = make_commoditynode(n, ts_data["heatload"])
+            d1 = make_commoditynode(n, ts_data["heatload"])
         elseif value["type"] == "fuel"
             d1 = make_fuelnode(n)
         elseif value["type"] == "onshore"
             d1 = make_vrenode(n, value, ts_data["cf_onshore"])
-        elseif value["type"] == "pv"
+        elseif value["type"] == "PV"
             d1 = make_vrenode(n, value, ts_data["cf_pv"])
         elseif value["type"] == "reservoir"
             d1 = make_hydronode(n, value, ts_data["hydroinflow"], 
                                 ts_data["hydrolowerlimits"],
                                 ts_data["hydroupperlimits"])
+        else
+            throw(ArgumentError(n, " the node type was not recognized."))
+        
         end
+
         nodes_spi = mergedicts(nodes_spi,d1)
     end
 

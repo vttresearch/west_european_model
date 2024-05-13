@@ -25,7 +25,7 @@ struct onshore_unit <: unit
     data::Dict
 end
 
-struct ocgt_unit <: unit
+struct condensing_unit <: unit
     data::Dict
 end
 
@@ -38,19 +38,24 @@ function createunitstruct(u1::Dict)
     if u1["type"] == "nuclear" return nuclear_unit(u1)
     elseif u1["type"] == "PV" return pv_unit(u1)
     elseif u1["type"] == "onshore" return onshore_unit(u1)
-    elseif u1["type"] == "OCGT" return ocgt_unit(u1)
-    elseif u1["type"] == "CCGT" return ocgt_unit(u1)
+    elseif u1["type"] == "OCGT" return condensing_unit(u1)
+    elseif u1["type"] == "CCGT" return condensing_unit(u1)
     elseif u1["type"] == "reservoir" return hydro_reservoir_unit(u1)
     elseif u1["type"] == "boiler" return boiler_unit(u1)
     elseif u1["type"] == "backpressure" return backpressure_unit(u1)
-    elseif u1["type"] == "eleboiler" return hp_unit(u1)
-
+    elseif u1["type"] == "elecboiler" return hp_unit(u1)
+    else
+        throw(ArgumentError(n, " the unittype was not recognized."))
     end
 
 end
 
 function createunitname(type, bzone)
     return "u_" * type * "_" * bzone
+end
+
+function createunitname(type, bzone, fuel)
+    return "u_" * type * "_" * fuel * "_" * bzone
 end
 
 function createbzone_elecname(bzone)
@@ -65,14 +70,16 @@ function createheatnodename(bzone, heatarea)
     return "n_" * bzone * (isnothing(heatarea) ? "" : "_" * heatarea) * "_dheat"
 end
 
-function basic_generator_unit(u::unit, unittypes, fuels)
+function basic_generator_unit(u::unit, unittypes, fuels, params; addfuelname = false)
 
-    unitname = createunitname(u.data["type"], u.data["bidding_zone"])
+    unitname = addfuelname ? createunitname(u.data["type"], u.data["bidding_zone"], u.data["fuel"]) :
+                        createunitname(u.data["type"], u.data["bidding_zone"])
     elecnode = createbzone_elecname(u.data["bidding_zone"])
     fuelnode = createbzone_fuelname(u.data["bidding_zone"], u.data["fuel"])
 
     vom_cost = unittypes[u.data["type"]]["vom_cost"]
-    fuelcost = fuels[u.data["fuel"]]["price"]
+    fuelcost = fuels[u.data["fuel"]]["price"] +
+                 params["co2_price"] * fuels[u.data["fuel"]]["co2_content"] * 3600 * 1e-6 #from g/MJ to t/MWh
 
     data1 = Dict(
         :objects => [["unit", unitname], ],
@@ -93,9 +100,10 @@ function basic_generator_unit(u::unit, unittypes, fuels)
     return unitname, elecnode, fuelnode, data1
 end
 
-function basic_boiler_unit(u::unit, unittypes, fuels, nodes)
+function basic_boiler_unit(u::unit, unittypes, fuels, nodes, params; addfuelname = false)
 
-    unitname = createunitname(u.data["type"], u.data["bidding_zone"])
+    unitname = addfuelname ? createunitname(u.data["type"], u.data["bidding_zone"], u.data["fuel"]) :
+                    createunitname(u.data["type"], u.data["bidding_zone"])
     heatnode = createheatnodename(u.data["bidding_zone"], u.data["heat_area"])
     fuelnode = createbzone_fuelname(u.data["bidding_zone"], u.data["fuel"])
 
@@ -123,7 +131,7 @@ function basic_boiler_unit(u::unit, unittypes, fuels, nodes)
 
     # specify the nodes related to this unit
     if !haskey(nodes, heatnode)
-        nodes[elecnode] = Dict("type" => "dheat")
+        nodes[heatnode] = Dict("type" => "dheat")
     end
     if !haskey(nodes, fuelnode)
         nodes[fuelnode] = Dict("type" => "fuel")
@@ -133,13 +141,13 @@ function basic_boiler_unit(u::unit, unittypes, fuels, nodes)
 end
 
 
-function convert_unit(u::boiler_unit, unittypes, fuels, nodes)
+function convert_unit(u::boiler_unit, unittypes, fuels, nodes, params)
 
-    return basic_boiler_unit(u, unittypes, fuels, nodes)
+    return basic_boiler_unit(u, unittypes, fuels, nodes, params, addfuelname = true)
 
 end
 
-function convert_unit(u::hp_unit, unittypes, fuels, nodes)
+function convert_unit(u::hp_unit, unittypes, fuels, nodes, params)
 
     unitname = createunitname(u.data["type"], u.data["bidding_zone"])
     heatnode = createheatnodename(u.data["bidding_zone"], u.data["heat_area"])
@@ -176,9 +184,9 @@ function convert_unit(u::hp_unit, unittypes, fuels, nodes)
     return data1
 end
 
-function convert_unit(u::backpressure_unit, unittypes, fuels, nodes)
+function convert_unit(u::backpressure_unit, unittypes, fuels, nodes, params)
 
-    unitname, elecnode, fuelnode, data1 = basic_generator_unit(u, unittypes, fuels)
+    unitname, elecnode, fuelnode, data1 = basic_generator_unit(u, unittypes, fuels, params, addfuelname = true)
     heatnode = createheatnodename(u.data["bidding_zone"], u.data["heat_area"])
     efficiency_elec = unittypes[u.data["type"]]["efficiency_elec"]
     p_h_ratio = unittypes[u.data["type"]]["power_heat_ratio"]
@@ -187,7 +195,7 @@ function convert_unit(u::backpressure_unit, unittypes, fuels, nodes)
     data2 = Dict(
         :relationships => [["unit__to_node", [unitname, heatnode]],
                             ["unit__node__node", [unitname, elecnode, heatnode]],
-        ]
+        ],
         :relationship_parameter_values => [
             ["unit__to_node", [unitname, elecnode], "minimum_operating_point", 0.4],
             ["unit__node__node", [unitname, elecnode, fuelnode], 
@@ -207,14 +215,14 @@ function convert_unit(u::backpressure_unit, unittypes, fuels, nodes)
         nodes[fuelnode] = Dict("type" => "fuel")
     end
     if !haskey(nodes, heatnode)
-        nodes[fuelnode] = Dict("type" => "dheat")
+        nodes[heatnode] = Dict("type" => "dheat")
     end
     return data1
 end
 
-function convert_unit(u::nuclear_unit, unittypes, fuels, nodes)
+function convert_unit(u::nuclear_unit, unittypes, fuels, nodes, params)
 
-    unitname, elecnode, fuelnode, data1 = basic_generator_unit(u, unittypes, fuels)
+    unitname, elecnode, fuelnode, data1 = basic_generator_unit(u, unittypes, fuels, params)
     efficiency = unittypes[u.data["type"]]["efficiency"]
     
     # additional unit data related to this unittype
@@ -243,9 +251,9 @@ function convert_unit(u::nuclear_unit, unittypes, fuels, nodes)
 end
 
 
-function convert_unit(u::ocgt_unit, unittypes, fuels, nodes)
+function convert_unit(u::condensing_unit, unittypes, fuels, nodes, params)
 
-    unitname, elecnode, fuelnode, data1 = basic_generator_unit(u, unittypes, fuels)
+    unitname, elecnode, fuelnode, data1 = basic_generator_unit(u, unittypes, fuels, params, addfuelname = true)
     efficiency = unittypes[u.data["type"]]["efficiency"]
   
       # additional unit data related to this unittype
@@ -273,7 +281,7 @@ function convert_unit(u::ocgt_unit, unittypes, fuels, nodes)
     return data1
 end
 
-function basic_hydro_unit(u::unit, unittypes, nodes)
+function basic_hydro_unit(u::unit, unittypes, nodes, params)
 
     unitname = createunitname(u.data["type"], u.data["bidding_zone"])
     elecnode = createbzone_elecname(u.data["bidding_zone"])
@@ -312,13 +320,13 @@ function basic_hydro_unit(u::unit, unittypes, nodes)
     return data1
 end
 
-function convert_unit(u::hydro_reservoir_unit, unittypes, fuels, nodes)
+function convert_unit(u::hydro_reservoir_unit, unittypes, fuels, nodes, params)
 
-    return basic_hydro_unit(u, unittypes, nodes)
+    return basic_hydro_unit(u, unittypes, nodes, params)
     
 end
 
-function basic_vre_unit(u::unit, unittypes, nodes)
+function basic_vre_unit(u::unit, unittypes, nodes, params)
 
     unitname = createunitname(u.data["type"], u.data["bidding_zone"])
     elecnode = createbzone_elecname(u.data["bidding_zone"])
@@ -356,8 +364,12 @@ function basic_vre_unit(u::unit, unittypes, nodes)
     return data1
 end
 
-function convert_unit(u::onshore_unit, unittypes, fuels, nodes)
-    return basic_vre_unit(u, unittypes, nodes)
+function convert_unit(u::onshore_unit, unittypes, fuels, nodes, params)
+    return basic_vre_unit(u, unittypes, nodes, params)
+end
+
+function convert_unit(u::pv_unit, unittypes, fuels, nodes, params)
+    return basic_vre_unit(u, unittypes, nodes, params)
 end
 
 
