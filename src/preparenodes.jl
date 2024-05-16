@@ -15,9 +15,11 @@ function preparenodes(nodes, ts_data)
             d1 = make_fuelnode(n)
         elseif value["type"] == "onshore"
             d1 = make_vrenode(n, value, ts_data["cf_onshore"])
+        elseif value["type"] == "offshore"
+            d1 = make_vrenode(n, value, ts_data["cf_offshore"])
         elseif value["type"] == "PV"
             d1 = make_vrenode(n, value, ts_data["cf_pv"])
-        elseif value["type"] == "reservoir"
+        elseif value["type"] == "reservoir" || value["type"] == "open-loop"
             d1 = make_hydronode(n, value, ts_data["hydroinflow"], 
                                 ts_data["hydrolowerlimits"],
                                 ts_data["hydroupperlimits"])

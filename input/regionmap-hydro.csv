@@ -3,3 +3,7 @@ n_FI00_reservoir,FI00_reservoir
 n_SE03_reservoir,SE03_reservoir
 n_SE02_reservoir,SE02_reservoir
 n_SE01_reservoir,SE01_reservoir
+n_SE04_reservoir,SE04_reservoir
+n_NON1_open-loop,NON1_psOpen
+n_NOM1_open-loop,NOM1_psOpen
+n_NOS0_open-loop,NOS0_psOpen

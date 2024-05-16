@@ -75,6 +75,10 @@ units:
       eleccapa: 4000
     - name:
       bidding_zone: SE03
+      type: PV
+      eleccapa: 2400
+    - name:
+      bidding_zone: SE03
       type: backpressure
       fuel: biomass
       heat_area:
@@ -120,6 +124,158 @@ units:
       bidding_zone: SE01
       type: onshore
       eleccapa: 4000
+    - name:
+      bidding_zone: SE04
+      type: reservoir
+      eleccapa: 237
+      reservoir_capacity: 71e3
+    - name:
+      bidding_zone: SE04
+      type: onshore
+      eleccapa: 2700
+    - name:
+      bidding_zone: SE04
+      type: PV
+      eleccapa: 1000
+    - name:
+      bidding_zone: SE04
+      type: backpressure
+      fuel: biomass
+      heat_area:
+      eleccapa: 360
+    - name:
+      bidding_zone: SE04
+      type: backpressure
+      fuel: msw
+      heat_area:
+      eleccapa: 80
+    - name:
+      bidding_zone: SE04
+      type: boiler
+      fuel: biomass
+      heat_area:
+      heatcapa: 1000
+    - name:
+      bidding_zone: SE04
+      type: boiler
+      fuel: oil
+      heat_area:
+      heatcapa: 12000
+    - name:
+      bidding_zone: NON1
+      type: onshore
+      eleccapa: 1700
+    - name:
+      bidding_zone: NON1
+      type: open-loop
+      eleccapa: 5500
+      reservoir_capacity: 21e6
+    - name:
+      bidding_zone: NOM1
+      type: onshore
+      eleccapa: 2100
+    - name:
+      bidding_zone: NOM1
+      type: open-loop
+      eleccapa: 4900
+      reservoir_capacity: 8.6e6
+    - name:
+      bidding_zone: NOS0
+      type: onshore
+      eleccapa: 2200
+    - name:
+      bidding_zone: NOS0
+      type: open-loop
+      eleccapa: 20000
+      reservoir_capacity: 57e6
+    - name:
+      bidding_zone: DKE1
+      type: onshore
+      eleccapa: 855
+    - name:
+      bidding_zone: DKE1
+      type: OCGT
+      fuel: gas
+      eleccapa: 1700
+    - name:
+      bidding_zone: DKE1
+      type: combined-cycle-chp
+      fuel: gas
+      heat_area:
+      eleccapa: 400
+    - name:
+      bidding_zone: DKE1
+      type: backpressure
+      fuel: biomass
+      heat_area:
+      eleccapa: 700
+    - name:
+      bidding_zone: DKE1
+      type: backpressure
+      fuel: msw
+      heat_area:
+      eleccapa: 200
+    - name:
+      bidding_zone: DKE1
+      type: boiler
+      fuel: biomass
+      heat_area:
+      heatcapa: 1000
+    - name:
+      bidding_zone: DKE1
+      type: boiler
+      fuel: oil
+      heat_area:
+      heatcapa: 12000
+    - name:
+      bidding_zone: DKW1
+      type: onshore
+      eleccapa: 4400
+    - name:
+      bidding_zone: DKW1
+      type: offshore
+      eleccapa: 1700
+    - name:
+      bidding_zone: DKW1
+      type: OCGT
+      fuel: oil
+      eleccapa: 1700
+    - name:
+      bidding_zone: DKW1
+      type: combined-cycle-chp
+      fuel: gas
+      heat_area:
+      eleccapa: 500
+    - name:
+      bidding_zone: DKW1
+      type: backpressure
+      fuel: biomass
+      heat_area:
+      eleccapa: 500
+    - name:
+      bidding_zone: DKW1
+      type: backpressure
+      fuel: coal
+      heat_area:
+      eleccapa: 300
+    - name:
+      bidding_zone: DKW1
+      type: backpressure
+      fuel: msw
+      heat_area:
+      eleccapa: 200
+    - name:
+      bidding_zone: DKW1
+      type: boiler
+      fuel: biomass
+      heat_area:
+      heatcapa: 1000
+    - name:
+      bidding_zone: DKW1
+      type: boiler
+      fuel: oil
+      heat_area:
+      heatcapa: 12000
 unittypes:
   - scenario: Distributed Energy
     year: 2040
@@ -127,14 +283,24 @@ unittypes:
       nuclear:
         efficiency: 0.35
         vom_cost: 4
+      steam-turbine:
+        efficiency: 0.39
+        vom_cost: 3
       OCGT:
-        efficiency: 0.38
+        efficiency: 0.36
+        vom_cost: 4
+      CCGT:
+        efficiency: 0.55
         vom_cost: 4
       onshore:
         vom_cost: 2
+      offshore:
+        vom_cost: 3
       PV:
         vom_cost: 0
       reservoir:
+        vom_cost: 1
+      open-loop:
         vom_cost: 1
       boiler:
         efficiency_heat: 0.92
@@ -145,6 +311,10 @@ unittypes:
       backpressure:
         power_heat_ratio: 0.6
         efficiency_elec: 0.38
+        vom_cost: 3
+      combined-cycle-chp:
+        power_heat_ratio: 1.0
+        efficiency_elec: 0.48
         vom_cost: 3
 fuels:
   - scenario: Distributed Energy
@@ -188,6 +358,42 @@ lines:
         to_zone: SE02
         export_capacity: 3300
         import_capacity: 3300
+      - from_zone: SE03
+        to_zone: SE04
+        export_capacity: 5400
+        import_capacity: 2000
+      - from_zone: NON1
+        to_zone: SE01
+        export_capacity: 700
+        import_capacity: 600
+      - from_zone: NOM1
+        to_zone: SE02
+        export_capacity: 600
+        import_capacity: 1000
+      - from_zone: NOS0
+        to_zone: SE03
+        export_capacity: 2100
+        import_capacity: 2100
+      - from_zone: NOM1
+        to_zone: NON1
+        export_capacity: 400
+        import_capacity: 1200
+      - from_zone: NOM1
+        to_zone: NOS0
+        export_capacity: 500
+        import_capacity: 500
+      - from_zone: DKE1
+        to_zone: SE04
+        export_capacity: 1700
+        import_capacity: 1300
+      - from_zone: DKW1
+        to_zone: NOS0
+        export_capacity: 1632
+        import_capacity: 1632
+      - from_zone: DKW1
+        to_zone: SE03
+        export_capacity: 715
+        import_capacity: 715
 parameters:
   - scenario: Distributed Energy
     year: 2040

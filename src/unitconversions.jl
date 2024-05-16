@@ -33,19 +33,26 @@ struct hydro_reservoir_unit <: unit
     data::Dict
 end
 
+struct hydro_openloop_unit <: unit
+    data::Dict
+end
+
 function createunitstruct(u1::Dict)
 
     if u1["type"] == "nuclear" return nuclear_unit(u1)
     elseif u1["type"] == "PV" return pv_unit(u1)
     elseif u1["type"] == "onshore" return onshore_unit(u1)
+    elseif u1["type"] == "offshore" return onshore_unit(u1)
     elseif u1["type"] == "OCGT" return condensing_unit(u1)
     elseif u1["type"] == "CCGT" return condensing_unit(u1)
     elseif u1["type"] == "reservoir" return hydro_reservoir_unit(u1)
+    elseif u1["type"] == "open-loop" return hydro_openloop_unit(u1)
     elseif u1["type"] == "boiler" return boiler_unit(u1)
     elseif u1["type"] == "backpressure" return backpressure_unit(u1)
+    elseif u1["type"] == "combined-cycle-chp" return backpressure_unit(u1)
     elseif u1["type"] == "elecboiler" return hp_unit(u1)
     else
-        throw(ArgumentError(n, " the unittype was not recognized."))
+        throw(ArgumentError(u1["type"], " the unittype was not recognized."))
     end
 
 end
@@ -320,10 +327,14 @@ function basic_hydro_unit(u::unit, unittypes, nodes, params)
     return data1
 end
 
+function convert_unit(u::hydro_openloop_unit, unittypes, fuels, nodes, params)
+
+    return basic_hydro_unit(u, unittypes, nodes, params)
+end
+
 function convert_unit(u::hydro_reservoir_unit, unittypes, fuels, nodes, params)
 
     return basic_hydro_unit(u, unittypes, nodes, params)
-    
 end
 
 function basic_vre_unit(u::unit, unittypes, nodes, params)

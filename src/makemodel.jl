@@ -61,7 +61,11 @@ function makemodel(filenames)
 
     # read the onshore wind cf for bidding zones
     ts_data["cf_onshore"] = read_timeseries(filenames["windonshorefile"], 
-                                filenames["windmappingfile"])
+                                filenames["onshoremappingfile"])
+
+    # read the offshore wind cf for bidding zones
+    ts_data["cf_offshore"] = read_timeseries(filenames["windoffshorefile"], 
+                                filenames["offshoremappingfile"])
 
     # read the PV cf for bidding zones
     ts_data["cf_pv"] = read_timeseries(filenames["pvfile"], 

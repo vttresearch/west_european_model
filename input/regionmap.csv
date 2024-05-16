@@ -1,3 +1,11 @@
 key, value
 n_FI00_elec,FI
+n_SE01_elec,SE_1
+n_SE02_elec,SE_2
 n_SE03_elec,SE_3
+n_SE04_elec,SE_4
+n_NON1_elec,NON1
+n_NOM1_elec,NOM1
+n_NOS0_elec,NOS0
+n_DKE1_elec,DKE1
+n_DKW1_elec,DKW1
