@@ -19,12 +19,14 @@ function preparenodes(nodes, ts_data)
             d1 = make_vrenode(n, value, ts_data["cf_offshore"])
         elseif value["type"] == "PV"
             d1 = make_vrenode(n, value, ts_data["cf_pv"])
-        elseif value["type"] == "reservoir" || value["type"] == "open-loop"
+        elseif value["type"] == "reservoir" || value["type"] == "open-loop" || 
+                value["type"] == "ror" || 
+                value["type"] == "closed-loop"
             d1 = make_hydronode(n, value, ts_data["hydroinflow"], 
                                 ts_data["hydrolowerlimits"],
                                 ts_data["hydroupperlimits"])
         else
-            throw(ArgumentError(n, " the node type was not recognized."))
+            throw(ArgumentError(" the node type was not recognized."))
         
         end
 
@@ -119,6 +121,8 @@ function make_hydronode(node, nodeprops, inflow::DataFrame,
     end
 
     # search also the minimum and maximum time-dependent reservoir levels
+    # these have not been given for ror units, so the capacity from the model file 
+    # will be used (=0)
     if hasproperty(lowerlimits, node)
         lolim = lowerlimits[:,["time", node]]
         lolim = convert_timeseries(lolim, node)

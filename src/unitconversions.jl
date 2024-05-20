@@ -45,14 +45,17 @@ function createunitstruct(u1::Dict)
     elseif u1["type"] == "offshore" return onshore_unit(u1)
     elseif u1["type"] == "OCGT" return condensing_unit(u1)
     elseif u1["type"] == "CCGT" return condensing_unit(u1)
+    elseif u1["type"] == "steam-turbine" return condensing_unit(u1)
     elseif u1["type"] == "reservoir" return hydro_reservoir_unit(u1)
     elseif u1["type"] == "open-loop" return hydro_openloop_unit(u1)
+    elseif u1["type"] == "closed-loop" return hydro_openloop_unit(u1)    
+    elseif u1["type"] == "ror" return hydro_reservoir_unit(u1)
     elseif u1["type"] == "boiler" return boiler_unit(u1)
     elseif u1["type"] == "backpressure" return backpressure_unit(u1)
     elseif u1["type"] == "combined-cycle-chp" return backpressure_unit(u1)
     elseif u1["type"] == "elecboiler" return hp_unit(u1)
     else
-        throw(ArgumentError(u1["type"], " the unittype was not recognized."))
+        throw(ArgumentError(u1["type"] ))
     end
 
 end
@@ -88,6 +91,9 @@ function basic_generator_unit(u::unit, unittypes, fuels, params; addfuelname = f
     fuelcost = fuels[u.data["fuel"]]["price"] +
                  params["co2_price"] * fuels[u.data["fuel"]]["co2_content"] * 3600 * 1e-6 #from g/MJ to t/MWh
 
+    subunits = get(u.data, "subunits",1)
+    subunitcapa = u.data["eleccapa"] / subunits
+
     data1 = Dict(
         :objects => [["unit", unitname], ],
         :relationships => [
@@ -98,7 +104,7 @@ function basic_generator_unit(u::unit, unittypes, fuels, params; addfuelname = f
             ["units_on__stochastic_structure", [unitname, "deterministic"]],
         ],
         :relationship_parameter_values => [
-            ["unit__to_node", [unitname, elecnode], "unit_capacity", u.data["eleccapa"]],
+            ["unit__to_node", [unitname, elecnode], "unit_capacity", subunitcapa],
             ["unit__to_node", [unitname, elecnode], "vom_cost", vom_cost],    
             ["unit__from_node", [unitname, fuelnode], "vom_cost", fuelcost],
         ]
@@ -232,10 +238,19 @@ function convert_unit(u::nuclear_unit, unittypes, fuels, nodes, params)
     unitname, elecnode, fuelnode, data1 = basic_generator_unit(u, unittypes, fuels, params)
     efficiency = unittypes[u.data["type"]]["efficiency"]
     
+    subunits = isnothing(u.data["subunits"]) ? 1 : u.data["subunits"]
+
+    temp = DataFrame(time = collect(DateTime(2015,1,11):Hour(1):DateTime(2016,4,16)) )
+    insertcols!(temp, :value => 0)
+
+    temp = convert_timeseries(temp )
+    
     # additional unit data related to this unittype
     data2 = Dict(
         :object_parameter_values => [
-            ["unit", unitname, "start_up_cost", 7000]
+            ["unit", unitname, "start_up_cost", 7000],
+            ["unit", unitname, "number_of_units", subunits],
+            ["unit", unitname, "units_unavailable", unparse_db_value(temp)],
         ],
         :relationship_parameter_values => [
             ["unit__to_node", [unitname, elecnode], "minimum_operating_point", 0.7],
@@ -296,6 +311,20 @@ function basic_hydro_unit(u::unit, unittypes, nodes, params)
 
     vom_cost = unittypes[u.data["type"]]["vom_cost"]
 
+    # check if reservoir initial status has been defined
+    a = filter(x->x["bidding_zone"] == u.data["bidding_zone"] && x["type"] == u.data["type"], 
+                    params["unit_initial_status"])
+    println(a)
+    if length(a) == 1
+        inilevel = a[1]["reservoir_level"]
+    elseif length(a) == 0
+        inilevel = nothing
+    else
+        throw(DomainError(a, "ambiguous unit initial status!"))
+    end
+
+    f = convert_timeseries(DataFrame(time = [params["model_start"] - Hour(1)], value = inilevel) )
+
     data1 = Dict(
         :objects => [["unit", unitname], ],
         :relationships => [
@@ -313,6 +342,8 @@ function basic_hydro_unit(u::unit, unittypes, nodes, params)
         ]
     )
 
+    
+
     # specify the nodes related to this unit
     # node type is according to the specific hydro type
     if !haskey(nodes, elecnode)
@@ -324,17 +355,42 @@ function basic_hydro_unit(u::unit, unittypes, nodes, params)
         )
     end
 
-    return data1
+    return data1, unitname, elecnode, hydronode
 end
 
 function convert_unit(u::hydro_openloop_unit, unittypes, fuels, nodes, params)
 
-    return basic_hydro_unit(u, unittypes, nodes, params)
+    data1, unitname, elecnode, hydronode = basic_hydro_unit(u, unittypes, nodes, params)
+
+    # next add the pump unit
+    unitname = "u_" * u.data["type"] * "_pump_" * u.data["bidding_zone"]
+    efficiency = unittypes[u.data["type"]]["efficiency"]
+    pumpcapa = get(u.data, "pumpcapa", 0)
+
+    data2 = Dict(
+        :objects => [["unit", unitname], ],
+        :relationships => [
+            ["unit__to_node", [unitname, hydronode]],
+            ["unit__from_node", [unitname, elecnode]],
+            ["unit__node__node", [unitname, hydronode, elecnode]],
+            ["units_on__temporal_block", [unitname, "hourly"]],
+            ["units_on__stochastic_structure", [unitname, "deterministic"]],
+        ],
+        :relationship_parameter_values => [
+            ["unit__to_node", [unitname, hydronode], "unit_capacity", pumpcapa],
+            ["unit__node__node", [unitname, hydronode, elecnode], 
+                "fix_ratio_out_in_unit_flow", efficiency]    
+        ]
+    )
+
+    data1 = mergedicts(data1, data2)
 end
 
 function convert_unit(u::hydro_reservoir_unit, unittypes, fuels, nodes, params)
 
-    return basic_hydro_unit(u, unittypes, nodes, params)
+    data1,_,_,_ = basic_hydro_unit(u, unittypes, nodes, params)
+
+    return data1
 end
 
 function basic_vre_unit(u::unit, unittypes, nodes, params)

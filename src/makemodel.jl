@@ -77,11 +77,13 @@ function makemodel(filenames)
 
     ts_data["hydrolowerlimits"] = read_timeseries(filenames["hydrolimitsfile"],
                                     filenames["hydromappingfile"],
-                                    :boundarytype => "downwardLimit")
+                                    :boundarytype => "downwardLimit",
+                                    allowmissings = true)
 
     ts_data["hydroupperlimits"] = read_timeseries(filenames["hydrolimitsfile"],
                                     filenames["hydromappingfile"],
-                                    :boundarytype => "upwardLimit")
+                                    :boundarytype => "upwardLimit",
+                                    allowmissings = true)
 
     # read units from the model specification file and create spineopt strucutres
     units_spi, nodes = readunits(filenames["mainmodel"], "Distributed Energy", 2040)

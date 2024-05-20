@@ -7,6 +7,7 @@ units:
       type: nuclear
       fuel: nuclear
       eleccapa: 4200
+      subunits: 5
     - name:
       bidding_zone: FI00
       type: OCGT
@@ -64,6 +65,7 @@ units:
       type: nuclear
       fuel: nuclear
       eleccapa: 6200
+      subunits: 6
     - name:
       bidding_zone: SE03
       type: OCGT
@@ -276,6 +278,73 @@ units:
       fuel: oil
       heat_area:
       heatcapa: 12000
+    - name:
+      bidding_zone: DE00
+      type: ror
+      eleccapa: 3900
+      reservoir_capacity: 0
+    - name:
+      bidding_zone: DE00
+      type: closed-loop
+      eleccapa: 6400
+      reservoir_capacity: 300e3
+      pumpcapa: 6500
+    - name:
+      bidding_zone: DE00
+      type: onshore
+      eleccapa: 75000
+    - name:
+      bidding_zone: DE00
+      type: CCGT
+      fuel: gas
+      eleccapa: 15000
+    - name:
+      bidding_zone: DE00
+      type: OCGT
+      fuel: gas
+      eleccapa: 10000
+    - name:
+      bidding_zone: DE00
+      type: combined-cycle-chp
+      fuel: gas
+      heat_area:
+      eleccapa: 7900
+    - name:
+      bidding_zone: DE00
+      type: steam-turbine
+      fuel: coal
+      heat_area:
+      eleccapa: 13000
+    - name:
+      bidding_zone: DE00
+      type: steam-turbine
+      fuel: lignite
+      heat_area:
+      eleccapa: 9000
+    - name:
+      bidding_zone: DE00
+      type: backpressure
+      fuel: coal
+      heat_area:
+      eleccapa: 3700
+    - name:
+      bidding_zone: DE00
+      type: backpressure
+      fuel: msw
+      heat_area:
+      eleccapa: 400
+    - name:
+      bidding_zone: DE00
+      type: boiler
+      fuel: oil
+      heat_area:
+      heatcapa: 12000
+    - name:
+      bidding_zone: DE00
+      type: boiler
+      fuel: gas
+      heat_area:
+      heatcapa: 13000
 unittypes:
   - scenario: Distributed Energy
     year: 2040
@@ -302,6 +371,12 @@ unittypes:
         vom_cost: 1
       open-loop:
         vom_cost: 1
+        efficiency: 0.8
+      closed-loop: 
+        vom_cost: 1
+        efficiency: 0.8
+      ror:
+        vom_cost: 0.5
       boiler:
         efficiency_heat: 0.92
         vom_cost: 3
@@ -335,6 +410,9 @@ fuels:
       coal:
         price: 10.0
         co2_content: 93
+      lignite:
+        price: 2.8
+        co2_content: 103
       msw:
         price: 1.0
         co2_content: 40
@@ -394,11 +472,30 @@ lines:
         to_zone: SE03
         export_capacity: 715
         import_capacity: 715
+      - from_zone: DE00
+        to_zone: DKW1
+        export_capacity: 2500
+        import_capacity: 2500
+      - from_zone: DE00
+        to_zone: NOS0
+        export_capacity: 1400
+        import_capacity: 1400
+      - from_zone: DE00
+        to_zone: SE04
+        export_capacity: 615
+        import_capacity: 615
 parameters:
   - scenario: Distributed Energy
     year: 2040
     scenario_parameters:
       co2_price: 100
+      unit_initial_status:
+        - name:
+          bidding_zone: NOS0
+          type: open-loop
+          reservoir_level: 31e6
+      model_start: 2015-02-10T00:00:00
+
 
         
 

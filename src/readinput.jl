@@ -2,7 +2,7 @@ using YAML
 using DataFrames, CSV
 
 
-function read_timeseries(filename, mappingfile, attribute=nothing)
+function read_timeseries(filename, mappingfile, attribute=nothing; allowmissings=false)
     
     #original data
     a = DataFrame(CSV.File(filename, 
@@ -20,7 +20,11 @@ function read_timeseries(filename, mappingfile, attribute=nothing)
     # read the columns mapping file and select columns
     regionmap = CSV.File(mappingfile) |> Dict
     for (key, valcol) in regionmap
-        insertcols!(b, key =>  a[:,valcol])
+        if hasproperty(a, valcol)
+            insertcols!(b, key =>  a[:,valcol])
+        elseif allowmissings == false
+            throw(DomainError(valcol, " not present in input data."))
+        end
     end
             
     # filter by time
@@ -36,6 +40,29 @@ function read_timeseries(filename, mappingfile, attribute=nothing)
     return b
 end
 
+function readmodelfile(filename, scenario, year)
+    
+    # Load YAML data from a file
+    inputdata = YAML.load_file(filename)
+
+    # extract the list of units for the scenario
+    units = filter(x->x["year"] == year && x["scenario"] == scenario, 
+        inputdata["units"])[1]
+    # extract the list of unit type definitions for the scenario
+    unittypes = filter(x->x["year"] == year && x["scenario"] == scenario, 
+        inputdata["unittypes"])[1]
+    # extract the list of fuel definitions for the scenario
+    fuels = filter(x->x["year"] == year && x["scenario"] == scenario, 
+        inputdata["fuels"])[1]
+    
+    # extract the dictionary of parameters for the scenario
+    params = filter(x->x["year"] == year && x["scenario"] == scenario, 
+                    inputdata["parameters"])[1]["scenario_parameters"]
+    println(params)
+
+    return units, unittypes, fuels, params
+
+end
 
 function readunits(filename, scenario, year)
 
@@ -56,7 +83,8 @@ function readunits(filename, scenario, year)
     params = filter(x->x["year"] == year && x["scenario"] == scenario, 
                     inputdata["parameters"])[1]["scenario_parameters"]
     println(params)
-    
+  
+
     # data structure for spinedb
     units_spi = Dict{Symbol,Any}()
 
@@ -72,6 +100,7 @@ function readunits(filename, scenario, year)
                             fuels["scenario_fuels"], 
                             nodes,
                             params)
+        #println(d1)
         units_spi = mergedicts(units_spi,d1)
     end 
 
