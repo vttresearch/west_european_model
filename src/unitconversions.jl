@@ -323,8 +323,6 @@ function basic_hydro_unit(u::unit, unittypes, nodes, params)
         throw(DomainError(a, "ambiguous unit initial status!"))
     end
 
-    f = convert_timeseries(DataFrame(time = [params["model_start"] - Hour(1)], value = inilevel) )
-
     data1 = Dict(
         :objects => [["unit", unitname], ],
         :relationships => [
@@ -342,7 +340,6 @@ function basic_hydro_unit(u::unit, unittypes, nodes, params)
         ]
     )
 
-    
 
     # specify the nodes related to this unit
     # node type is according to the specific hydro type
@@ -351,7 +348,8 @@ function basic_hydro_unit(u::unit, unittypes, nodes, params)
     end
     if !haskey(nodes, hydronode)
         nodes[hydronode] = Dict("type" => u.data["type"],
-                                "reservoir_capacity" => u.data["reservoir_capacity"]
+                                "reservoir_capacity" => u.data["reservoir_capacity"],
+                                "reservoir_initial_level" => inilevel
         )
     end
 

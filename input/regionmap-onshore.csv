@@ -1,4 +1,5 @@
 key, value
+n_EE00_onshore,EE00
 n_FI00_onshore,FI00
 n_SE01_onshore,SE01
 n_SE02_onshore,SE02
@@ -10,3 +11,10 @@ n_NOS0_onshore,NOS0
 n_DKE1_onshore,DKE1
 n_DKW1_onshore,DKW1
 n_DE00_onshore,DE00
+n_PL00_onshore,PL00
+n_LV00_onshore,LV00
+n_LT00_onshore,LT00
+n_NL00_onshore,NL00
+n_BE00_onshore,BE00
+n_FR00_onshore,FR00
+n_UK00_onshore,UK00

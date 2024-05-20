@@ -64,26 +64,7 @@ function readmodelfile(filename, scenario, year)
 
 end
 
-function readunits(filename, scenario, year)
-
-    # Load YAML data from a file
-    inputdata = YAML.load_file(filename)
-
-    # extract the list of units for the scenario
-    unitlist = filter(x->x["year"] == year && x["scenario"] == scenario, 
-        inputdata["units"])[1]
-    # extract the list of unit type definitions for the scenario
-    unittypes = filter(x->x["year"] == year && x["scenario"] == scenario, 
-        inputdata["unittypes"])[1]
-    # extract the list of fuel definitions for the scenario
-    fuels = filter(x->x["year"] == year && x["scenario"] == scenario, 
-        inputdata["fuels"])[1]
-    
-    # extract the dictionary of parameters for the scenario
-    params = filter(x->x["year"] == year && x["scenario"] == scenario, 
-                    inputdata["parameters"])[1]["scenario_parameters"]
-    println(params)
-  
+function makeunits(unitlist, unittypes, fuels, params)
 
     # data structure for spinedb
     units_spi = Dict{Symbol,Any}()

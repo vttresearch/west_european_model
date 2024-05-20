@@ -1,4 +1,5 @@
 key, value
+n_EE00_elec,EE
 n_FI00_elec,FI
 n_SE01_elec,SE_1
 n_SE02_elec,SE_2
@@ -10,3 +11,10 @@ n_NOS0_elec,NOS0
 n_DKE1_elec,DKE1
 n_DKW1_elec,DKW1
 n_DE00_elec,DE
+n_PL00_elec,PL
+n_LV00_elec,LV
+n_LT00_elec,LT
+n_NL00_elec,NL
+n_BE00_elec,BE
+n_FR00_elec,FR
+n_UK00_elec,GB

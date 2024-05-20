@@ -295,6 +295,10 @@ units:
       eleccapa: 75000
     - name:
       bidding_zone: DE00
+      type: PV
+      eleccapa: 89000
+    - name:
+      bidding_zone: DE00
       type: CCGT
       fuel: gas
       eleccapa: 15000
@@ -345,6 +349,252 @@ units:
       fuel: gas
       heat_area:
       heatcapa: 13000
+    - name:
+      bidding_zone: PL00
+      type: closed-loop
+      eleccapa: 1300
+      reservoir_capacity: 6340
+      pumpcapa: 1300
+    - name:
+      bidding_zone: PL00
+      type: onshore
+      eleccapa: 10000
+    - name:
+      bidding_zone: PL00
+      type: OCGT
+      fuel: gas
+      eleccapa: 3000
+    - name:
+      bidding_zone: PL00
+      type: combined-cycle-chp
+      fuel: gas
+      heat_area:
+      eleccapa: 960
+    - name:
+      bidding_zone: PL00
+      type: steam-turbine
+      fuel: coal
+      heat_area:
+      eleccapa: 15800
+    - name:
+      bidding_zone: PL00
+      type: steam-turbine
+      fuel: lignite
+      heat_area:
+      eleccapa: 7600
+    - name:
+      bidding_zone: PL00
+      type: backpressure
+      fuel: coal
+      heat_area:
+      eleccapa: 5300
+    - name:
+      bidding_zone: PL00
+      type: backpressure
+      fuel: msw
+      heat_area:
+      eleccapa: 300
+    - name:
+      bidding_zone: PL00
+      type: boiler
+      fuel: oil
+      heat_area:
+      heatcapa: 22000
+    - name:
+      bidding_zone: PL00
+      type: boiler
+      fuel: gas
+      heat_area:
+      heatcapa: 11000
+    - name:
+      bidding_zone: EE00
+      type: steam-turbine
+      fuel: oilshale
+      heat_area:
+      eleccapa: 1500
+    - name:
+      bidding_zone: EE00
+      type: PV
+      eleccapa: 900
+    - name:
+      bidding_zone: LV00
+      type: ror
+      eleccapa: 1600
+      reservoir_capacity: 0
+    - name:
+      bidding_zone: LV00
+      type: CCGT
+      fuel: gas
+      eleccapa: 950
+    - name:
+      bidding_zone: LV00
+      type: PV
+      eleccapa: 460
+    - name:
+      bidding_zone: LT00
+      type: closed-loop
+      eleccapa: 828
+      reservoir_capacity: 10500
+      pumpcapa: 828
+    - name:
+      bidding_zone: LT00
+      type: PV
+      eleccapa: 700
+    - name:
+      bidding_zone: LT00
+      type: onshore
+      eleccapa: 1000
+    - name:
+      bidding_zone: LT00
+      type: CCGT
+      fuel: gas
+      eleccapa: 1170
+    - name:
+      bidding_zone: NL00
+      type: PV
+      eleccapa: 20000
+    - name:
+      bidding_zone: NL00
+      type: onshore
+      eleccapa: 5700
+    - name:
+      bidding_zone: NL00
+      type: CCGT
+      fuel: gas
+      eleccapa: 10500
+    - name:
+      bidding_zone: NL00
+      type: OCGT
+      fuel: gas
+      eleccapa: 5000
+    - name:
+      bidding_zone: NL00
+      type: steam-turbine
+      fuel: coal
+      eleccapa: 4000
+    - name:
+      bidding_zone: NL00
+      type: nuclear
+      fuel: nuclear
+      eleccapa: 486
+      subunits: 1
+    - name:
+      bidding_zone: BE00
+      type: closed-loop
+      eleccapa: 1278
+      reservoir_capacity: 5800
+      pumpcapa: 1200
+    - name:
+      bidding_zone: BE00
+      type: PV
+      eleccapa: 7500
+    - name:
+      bidding_zone: BE00
+      type: onshore
+      eleccapa: 3500
+    - name:
+      bidding_zone: BE00
+      type: offshore
+      eleccapa: 2200
+    - name:
+      bidding_zone: BE00
+      type: nuclear
+      fuel: nuclear
+      eleccapa: 3100
+      subunits: 3
+    - name:
+      bidding_zone: BE00
+      type: CCGT
+      fuel: gas
+      eleccapa: 6700
+    - name:
+      bidding_zone: BE00
+      type: OCGT
+      fuel: gas
+      eleccapa: 500
+    - name:
+      bidding_zone: BE00
+      type: steam-turbine
+      fuel: coal
+      heat_area:
+      eleccapa: 615
+    - name:
+      bidding_zone: FR00
+      type: ror
+      eleccapa: 13600
+      reservoir_capacity: 0
+    - name:
+      bidding_zone: FR00
+      type: reservoir
+      eleccapa: 9000
+      reservoir_capacity: 10e6
+    - name:
+      bidding_zone: FR00
+      type: CCGT
+      fuel: gas
+      eleccapa: 6500
+    - name:
+      bidding_zone: FR00
+      type: nuclear
+      fuel: nuclear
+      eleccapa: 52000
+      subunits: 50
+    - name:
+      bidding_zone: FR00
+      type: PV
+      eleccapa: 29000
+    - name:
+      bidding_zone: FR00
+      type: onshore
+      eleccapa: 24500
+    - name:
+      bidding_zone: FR00
+      type: offshore
+      eleccapa: 2200
+    - name:
+      bidding_zone: UK00
+      type: ror
+      eleccapa: 2100
+      reservoir_capacity: 0
+    - name:
+      bidding_zone: UK00
+      type: closed-loop
+      eleccapa: 2700
+      reservoir_capacity: 26000
+      pumpcapa: 2600
+    - name:
+      bidding_zone: UK00
+      type: CCGT
+      fuel: gas
+      eleccapa: 30000
+    - name:
+      bidding_zone: UK00
+      type: OCGT
+      fuel: gas
+      eleccapa: 10000
+    - name:
+      bidding_zone: UK00
+      type: nuclear
+      fuel: nuclear
+      eleccapa: 1200
+      subunits: 2
+    - name:
+      bidding_zone: UK00
+      type: PV
+      eleccapa: 20000
+    - name:
+      bidding_zone: UK00
+      type: onshore
+      eleccapa: 15500
+    - name:
+      bidding_zone: UK00
+      type: offshore
+      eleccapa: 17000
+    - name:
+      bidding_zone: UK00
+      type: steam-turbine
+      fuel: coal
+      eleccapa: 3700
 unittypes:
   - scenario: Distributed Energy
     year: 2040
@@ -416,10 +666,21 @@ fuels:
       msw:
         price: 1.0
         co2_content: 40
+      oilshale:
+        price: 10.0
+        co2_content: 80
 lines:
   - scenario: Distributed Energy
     year: 2040
     scenario_lines:
+      - from_zone: EE00
+        to_zone: FI00
+        export_capacity: 1000
+        import_capacity: 1000
+      - from_zone: EE00
+        to_zone: LV00
+        export_capacity: 865
+        import_capacity: 865
       - from_zone: FI00
         to_zone: SE03
         export_capacity: 700
@@ -460,6 +721,10 @@ lines:
         to_zone: NOS0
         export_capacity: 500
         import_capacity: 500
+      - from_zone: NOS0
+        to_zone: UK00
+        export_capacity: 1400
+        import_capacity: 1400
       - from_zone: DKE1
         to_zone: SE04
         export_capacity: 1700
@@ -472,6 +737,10 @@ lines:
         to_zone: SE03
         export_capacity: 715
         import_capacity: 715
+      - from_zone: DKW1
+        to_zone: NL00
+        export_capacity: 700
+        import_capacity: 700
       - from_zone: DE00
         to_zone: DKW1
         export_capacity: 2500
@@ -484,6 +753,46 @@ lines:
         to_zone: SE04
         export_capacity: 615
         import_capacity: 615
+      - from_zone: DE00
+        to_zone: PL00
+        export_capacity: 3000
+        import_capacity: 3000
+      - from_zone: DE00
+        to_zone: NL00
+        export_capacity: 4400
+        import_capacity: 4400
+      - from_zone: DE00
+        to_zone: FR00
+        export_capacity: 3000
+        import_capacity: 3000
+      - from_zone: PL00
+        to_zone: SE04
+        export_capacity: 600
+        import_capacity: 600
+      - from_zone: LT00
+        to_zone: LV00
+        export_capacity: 700
+        import_capacity: 700
+      - from_zone: LT00
+        to_zone: SE04
+        export_capacity: 700
+        import_capacity: 700
+      - from_zone: NL00
+        to_zone: NOS0
+        export_capacity: 700
+        import_capacity: 700
+      - from_zone: BE00
+        to_zone: NL00
+        export_capacity: 2400
+        import_capacity: 2400
+      - from_zone: BE00
+        to_zone: FR00
+        export_capacity: 2800
+        import_capacity: 4300
+      - from_zone: FR00
+        to_zone: UK00
+        export_capacity: 4000
+        import_capacity: 4000
 parameters:
   - scenario: Distributed Energy
     year: 2040
@@ -494,6 +803,10 @@ parameters:
           bidding_zone: NOS0
           type: open-loop
           reservoir_level: 31e6
+        - name:
+          bidding_zone: NON1
+          type: open-loop
+          reservoir_level: 9e6
       model_start: 2015-02-10T00:00:00
 
 

@@ -1,7 +1,7 @@
 
 using SpineInterface
 
-function preparenodes(nodes, ts_data)
+function preparenodes(nodes, ts_data, params)
 
     # data structure for spinedb
     nodes_spi = Dict{Symbol,Any}()
@@ -24,7 +24,8 @@ function preparenodes(nodes, ts_data)
                 value["type"] == "closed-loop"
             d1 = make_hydronode(n, value, ts_data["hydroinflow"], 
                                 ts_data["hydrolowerlimits"],
-                                ts_data["hydroupperlimits"])
+                                ts_data["hydroupperlimits"],
+                                params)
         else
             throw(ArgumentError(" the node type was not recognized."))
         
@@ -110,7 +111,8 @@ end
 
 function make_hydronode(node, nodeprops, inflow::DataFrame,
                         lowerlimits::DataFrame,
-                        upperlimits::DataFrame)
+                        upperlimits::DataFrame,
+                        params)
 
     # search reservoir inflow from data
     if hasproperty(inflow, node)
@@ -136,6 +138,13 @@ function make_hydronode(node, nodeprops, inflow::DataFrame,
         ulim = get(nodeprops, "reservoir_capacity", 0)
     end
 
+    # check if initial level has been defined
+    f = nothing
+    if !isnothing(nodeprops["reservoir_initial_level"])
+        f = convert_timeseries(DataFrame(time = [params["model_start"] - Hour(1)], 
+                                        value = nodeprops["reservoir_initial_level"]) )
+    end
+
     data1 = Dict(
         :objects => [
             ["node", node],
@@ -151,6 +160,12 @@ function make_hydronode(node, nodeprops, inflow::DataFrame,
             ["node", node, "node_state_min", unparse_db_value(lolim)]
         ]
     )
+
+    if !isnothing(f)
+        println("limit " * node)
+        println(f)
+        push!(data1[:object_parameter_values], ["node", node, "fix_node_state", unparse_db_value(f)])
+    end
 
     return data1
 end

@@ -6,8 +6,9 @@ function basic_model()
     # temporal block
     r = ones(24) * Hour(1)
     r = [r; ones(6) * Day(1)]
-    r = [r; ones(11) * Day(30)]
+    r = [r; ones(12) * Day(30)]
 
+    println(sum(r))
     test_data = Dict(
         :objects => [
             ["model", "instance"],
@@ -32,7 +33,7 @@ function basic_model()
         :object_parameter_values => [
             #["model", "instance", "model_start", Dict("type" => "date_time", "data" => "2022-01-01T00:00:00")],
             ["model", "instance", "model_start", unparse_db_value(DateTime(2015,2,10))],
-            ["model", "instance", "model_end", unparse_db_value(DateTime(2016,1,10))],
+            ["model", "instance", "model_end", unparse_db_value(DateTime(2015,2,10) + sum(r))],
             ["model", "instance", "duration_unit", "hour"],
             ["model", "instance", "roll_forward", nothing],
             
@@ -73,7 +74,8 @@ function makemodel(filenames)
 
     # read hydro inflow profiles
     ts_data["hydroinflow"] = read_timeseries(filenames["hydroinflowfile"], 
-                                    filenames["hydromappingfile"])
+                                    filenames["hydromappingfile"],
+                                    allowmissings = true)
 
     ts_data["hydrolowerlimits"] = read_timeseries(filenames["hydrolimitsfile"],
                                     filenames["hydromappingfile"],
@@ -86,10 +88,11 @@ function makemodel(filenames)
                                     allowmissings = true)
 
     # read units from the model specification file and create spineopt strucutres
-    units_spi, nodes = readunits(filenames["mainmodel"], "Distributed Energy", 2040)
+    units, unittypes, fuels, params = readmodelfile(filenames["mainmodel"], "Distributed Energy", 2040)
+    units_spi, nodes = makeunits(units, unittypes, fuels, params)
 
     # create spineopt strucutres for nodes
-    nodes_spi = preparenodes(nodes, ts_data)
+    nodes_spi = preparenodes(nodes, ts_data, params)
 
     # create spineopt structures for transmission lines
     lines_spi = readlines(filenames["mainmodel"], "Distributed Energy", 2040)

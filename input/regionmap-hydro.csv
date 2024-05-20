@@ -8,3 +8,12 @@ n_NON1_open-loop,NON1_psOpen
 n_NOM1_open-loop,NOM1_psOpen
 n_NOS0_open-loop,NOS0_psOpen
 n_DE00_ror,DE00_ror
+n_DE00_closed-loop,DE00_psClosed
+n_PL00_closed-loop,PL00_psClosed
+n_LV00_ror,LV00_ror
+n_LT00_closed-loop,LT00_psClosed
+n_BE00_closed-loop,BE00_psClosed
+n_FR00_ror,FR00_ror
+n_FR00_reservoir,FR00_reservoir
+n_UK00_ror,UK00_ror
+n_UK00_closed-loop,UK00_psClosed
