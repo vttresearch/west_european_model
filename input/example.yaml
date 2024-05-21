@@ -500,8 +500,8 @@ units:
       bidding_zone: BE00
       type: nuclear
       fuel: nuclear
-      eleccapa: 3100
-      subunits: 3
+      eleccapa: 3400
+      subunits: 4
     - name:
       bidding_zone: BE00
       type: CCGT
@@ -538,7 +538,7 @@ units:
       type: nuclear
       fuel: nuclear
       eleccapa: 52000
-      subunits: 50
+      subunits: 48
     - name:
       bidding_zone: FR00
       type: PV
@@ -602,6 +602,7 @@ unittypes:
       nuclear:
         efficiency: 0.35
         vom_cost: 4
+        startup_cost: 1000
       steam-turbine:
         efficiency: 0.39
         vom_cost: 3

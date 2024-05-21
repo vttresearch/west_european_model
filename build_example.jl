@@ -16,7 +16,9 @@ filenames = Dict("elecloadfile" => "input/summary_load_2011-2020-1h.csv",
                 "hydroinflowfile" => "input/summary_hydro_inflow_1982-2020_1h_MWh.csv",
                 "hydrolimitsfile" => "input/summary_hydro_reservoir_limits_2015_2016_1h_MWh.csv",
                 "hydropowlimitsfile" => "input/summary_hydro_reservoir_minmax_generation_1982_2020_1h_MWh.csv",
-                "hydromappingfile" => "input/regionmap-hydro.csv")
+                "hydromappingfile" => "input/regionmap-hydro.csv",
+                "unitsofflinefile" => "input/ts_units_unavailable.csv",
+                "offlinemappingfile" => "input/unitmap-offline.csv")
 
 
 makemodel(filenames)

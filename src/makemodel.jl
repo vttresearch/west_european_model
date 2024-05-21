@@ -49,16 +49,16 @@ function basic_model()
     )
 end
 
+function read_ts(filenames)
 
-function makemodel(filenames)
+    ts_data = Dict()
 
     # read the electrical load for bidding zones
-    ts_data = Dict()
     ts_data["elecload"] = read_timeseries(filenames["elecloadfile"], 
                             filenames["loadmappingfile"])
     
     ts_data["heatload"] = read_timeseries(filenames["heatloadfile"], 
-    filenames["heatmappingfile"])
+                            filenames["heatmappingfile"])
 
     # read the onshore wind cf for bidding zones
     ts_data["cf_onshore"] = read_timeseries(filenames["windonshorefile"], 
@@ -87,9 +87,20 @@ function makemodel(filenames)
                                     :boundarytype => "upwardLimit",
                                     allowmissings = true)
 
+    ts_data["units_unavailable"] = read_timeseries(filenames["unitsofflinefile"],
+                                    filenames["offlinemappingfile"],
+                                    allowmissings = true)
+
+    return ts_data
+end
+
+function makemodel(filenames)
+
+    ts_data = read_ts(filenames)
+
     # read units from the model specification file and create spineopt strucutres
     units, unittypes, fuels, params = readmodelfile(filenames["mainmodel"], "Distributed Energy", 2040)
-    units_spi, nodes = makeunits(units, unittypes, fuels, params)
+    units_spi, nodes = makeunits(units, unittypes, fuels, ts_data, params)
 
     # create spineopt strucutres for nodes
     nodes_spi = preparenodes(nodes, ts_data, params)

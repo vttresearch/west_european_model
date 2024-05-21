@@ -61,11 +61,11 @@ function createunitstruct(u1::Dict)
 end
 
 function createunitname(type, bzone)
-    return "u_" * type * "_" * bzone
+    return "u_" * bzone * "_" * type 
 end
 
 function createunitname(type, bzone, fuel)
-    return "u_" * type * "_" * fuel * "_" * bzone
+    return "u_" * bzone * "_" * type * "_" * fuel 
 end
 
 function createbzone_elecname(bzone)
@@ -78,6 +78,30 @@ end
 
 function createheatnodename(bzone, heatarea)
     return "n_" * bzone * (isnothing(heatarea) ? "" : "_" * heatarea) * "_dheat"
+end
+
+function makeunits(unitlist, unittypes, fuels, ts_data, params)
+
+    # data structure for spinedb
+    units_spi = Dict{Symbol,Any}()
+
+    # internal nodes dict
+    nodes = Dict()
+
+    # for each unit create the data structure    
+    for u1 in unitlist["scenario_units"]
+        
+        u = createunitstruct(u1)
+        d1 = convert_unit(u, unittypes["scenario_unittypes"], 
+                            fuels["scenario_fuels"], 
+                            ts_data,
+                            nodes,
+                            params)
+        units_spi = mergedicts(units_spi,d1)
+    end 
+
+
+    return units_spi, nodes
 end
 
 function basic_generator_unit(u::unit, unittypes, fuels, params; addfuelname = false)
@@ -94,8 +118,14 @@ function basic_generator_unit(u::unit, unittypes, fuels, params; addfuelname = f
     subunits = get(u.data, "subunits",1)
     subunitcapa = u.data["eleccapa"] / subunits
 
+    # for this type, startup cost is given per MW elec
+    startupcost = subunitcapa * get(unittypes[u.data["type"]], "startup_cost", 0)
+
     data1 = Dict(
         :objects => [["unit", unitname], ],
+        :object_parameter_values => [
+            ["unit", unitname, "start_up_cost", startupcost],
+        ]
         :relationships => [
             ["unit__to_node", [unitname, elecnode]],
             ["unit__from_node", [unitname, fuelnode]],
@@ -154,13 +184,13 @@ function basic_boiler_unit(u::unit, unittypes, fuels, nodes, params; addfuelname
 end
 
 
-function convert_unit(u::boiler_unit, unittypes, fuels, nodes, params)
+function convert_unit(u::boiler_unit, unittypes, fuels, ts_data, nodes, params)
 
     return basic_boiler_unit(u, unittypes, fuels, nodes, params, addfuelname = true)
 
 end
 
-function convert_unit(u::hp_unit, unittypes, fuels, nodes, params)
+function convert_unit(u::hp_unit, unittypes, fuels, ts_data, nodes, params)
 
     unitname = createunitname(u.data["type"], u.data["bidding_zone"])
     heatnode = createheatnodename(u.data["bidding_zone"], u.data["heat_area"])
@@ -197,7 +227,7 @@ function convert_unit(u::hp_unit, unittypes, fuels, nodes, params)
     return data1
 end
 
-function convert_unit(u::backpressure_unit, unittypes, fuels, nodes, params)
+function convert_unit(u::backpressure_unit, unittypes, fuels, ts_data, nodes, params)
 
     unitname, elecnode, fuelnode, data1 = basic_generator_unit(u, unittypes, fuels, params, addfuelname = true)
     heatnode = createheatnodename(u.data["bidding_zone"], u.data["heat_area"])
@@ -233,24 +263,26 @@ function convert_unit(u::backpressure_unit, unittypes, fuels, nodes, params)
     return data1
 end
 
-function convert_unit(u::nuclear_unit, unittypes, fuels, nodes, params)
+function convert_unit(u::nuclear_unit, unittypes, fuels, ts_data, nodes, params)
 
     unitname, elecnode, fuelnode, data1 = basic_generator_unit(u, unittypes, fuels, params)
     efficiency = unittypes[u.data["type"]]["efficiency"]
     
-    subunits = isnothing(u.data["subunits"]) ? 1 : u.data["subunits"]
-
-    temp = DataFrame(time = collect(DateTime(2015,1,11):Hour(1):DateTime(2016,4,16)) )
-    insertcols!(temp, :value => 0)
-
-    temp = convert_timeseries(temp )
+    subunits = get(u.data, "subunits",1)
     
+    # check if units_unavailable has been defined
+    f = nothing
+    if hasproperty(ts_data["units_unavailable"], unitname)
+        units_unavailable = convert_timeseries(ts_data["units_unavailable"], unitname)
+    else
+        units_unavailable = 0
+    end
+
     # additional unit data related to this unittype
     data2 = Dict(
         :object_parameter_values => [
-            ["unit", unitname, "start_up_cost", 7000],
             ["unit", unitname, "number_of_units", subunits],
-            ["unit", unitname, "units_unavailable", unparse_db_value(temp)],
+            ["unit", unitname, "units_unavailable", unparse_db_value(units_unavailable)],
         ],
         :relationship_parameter_values => [
             ["unit__to_node", [unitname, elecnode], "minimum_operating_point", 0.7],
@@ -273,16 +305,14 @@ function convert_unit(u::nuclear_unit, unittypes, fuels, nodes, params)
 end
 
 
-function convert_unit(u::condensing_unit, unittypes, fuels, nodes, params)
+function convert_unit(u::condensing_unit, unittypes, fuels, ts_data, nodes, params)
 
     unitname, elecnode, fuelnode, data1 = basic_generator_unit(u, unittypes, fuels, params, addfuelname = true)
     efficiency = unittypes[u.data["type"]]["efficiency"]
   
       # additional unit data related to this unittype
       data2 = Dict(
-        :object_parameter_values => [
-            ["unit", unitname, "start_up_cost", 7000]
-        ],
+      
         :relationship_parameter_values => [
             ["unit__to_node", [unitname, elecnode], "minimum_operating_point", 0.4],
             ["unit__node__node", [unitname, elecnode, fuelnode], 
@@ -356,12 +386,12 @@ function basic_hydro_unit(u::unit, unittypes, nodes, params)
     return data1, unitname, elecnode, hydronode
 end
 
-function convert_unit(u::hydro_openloop_unit, unittypes, fuels, nodes, params)
+function convert_unit(u::hydro_openloop_unit, unittypes, fuels, ts_data, nodes, params)
 
     data1, unitname, elecnode, hydronode = basic_hydro_unit(u, unittypes, nodes, params)
 
     # next add the pump unit
-    unitname = "u_" * u.data["type"] * "_pump_" * u.data["bidding_zone"]
+    unitname = "u_" * u.data["bidding_zone"] * "_" * u.data["type"] * "_pump" 
     efficiency = unittypes[u.data["type"]]["efficiency"]
     pumpcapa = get(u.data, "pumpcapa", 0)
 
@@ -384,7 +414,7 @@ function convert_unit(u::hydro_openloop_unit, unittypes, fuels, nodes, params)
     data1 = mergedicts(data1, data2)
 end
 
-function convert_unit(u::hydro_reservoir_unit, unittypes, fuels, nodes, params)
+function convert_unit(u::hydro_reservoir_unit, unittypes, fuels, ts_data, nodes, params)
 
     data1,_,_,_ = basic_hydro_unit(u, unittypes, nodes, params)
 
@@ -429,11 +459,11 @@ function basic_vre_unit(u::unit, unittypes, nodes, params)
     return data1
 end
 
-function convert_unit(u::onshore_unit, unittypes, fuels, nodes, params)
+function convert_unit(u::onshore_unit, unittypes, fuels, ts_data, nodes, params)
     return basic_vre_unit(u, unittypes, nodes, params)
 end
 
-function convert_unit(u::pv_unit, unittypes, fuels, nodes, params)
+function convert_unit(u::pv_unit, unittypes, fuels, ts_data, nodes, params)
     return basic_vre_unit(u, unittypes, nodes, params)
 end
 

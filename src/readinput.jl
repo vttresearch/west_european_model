@@ -64,30 +64,7 @@ function readmodelfile(filename, scenario, year)
 
 end
 
-function makeunits(unitlist, unittypes, fuels, params)
 
-    # data structure for spinedb
-    units_spi = Dict{Symbol,Any}()
-
-    # internal nodes dict
-    nodes = Dict()
-
-    # for each unit create the data structure    
-    for u1 in unitlist["scenario_units"]
-        
-        u = createunitstruct(u1)
-        println(u1)
-        d1 = convert_unit(u, unittypes["scenario_unittypes"], 
-                            fuels["scenario_fuels"], 
-                            nodes,
-                            params)
-        #println(d1)
-        units_spi = mergedicts(units_spi,d1)
-    end 
-
-
-    return units_spi, nodes
-end
 
 function readlines(filename, scenario, year)
 
