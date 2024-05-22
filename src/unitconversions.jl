@@ -125,7 +125,7 @@ function basic_generator_unit(u::unit, unittypes, fuels, params; addfuelname = f
         :objects => [["unit", unitname], ],
         :object_parameter_values => [
             ["unit", unitname, "start_up_cost", startupcost],
-        ]
+        ],
         :relationships => [
             ["unit__to_node", [unitname, elecnode]],
             ["unit__from_node", [unitname, fuelnode]],
