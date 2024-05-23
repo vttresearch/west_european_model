@@ -2,7 +2,7 @@ using Revise
 using Nordconvert
 using Infiltrator
 
-filenames = Dict("elecloadfile" => "input/summary_load_2011-2020-1h.csv",
+filenames = Dict("elecloadfile" => "input/ts_load_all.csv",
                 "loadmappingfile" => "input/regionmap.csv",
                 "heatloadfile" => "input/DH_2025_timeseries_summary.csv",
                 "heatmappingfile" => "input/regionmap-dheat.csv",

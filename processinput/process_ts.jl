@@ -28,7 +28,7 @@ end
 """
  Extend time series data by copying existing data
 """
-function extend_series(d, begintime, copyyear)
+function extend_series(d, begintime, copyyear; endtime = nothing)
 
     # select a single year (and a bit more for leap years) 
     # from original data for copying
@@ -38,7 +38,9 @@ function extend_series(d, begintime, copyyear)
     d2 = calc_hourofyear(d2, _year = copyyear)
 
     # determine the time period to be covered
-    endtime = minimum(d[:,:time]) - Hour(1)
+    if isnothing(endtime)
+        endtime = minimum(d[:,:time]) - Hour(1)
+    end
     a = DataFrame(time = collect(begintime:Hour(1):endtime) )
     
     # join series based on hour of year
@@ -50,36 +52,6 @@ function extend_series(d, begintime, copyyear)
     # combine the extended part
     d = vcat(a,d)
     return d
-end
-
-#convert the Norway load areas
-function convertload()
-
-    elecloadfile = "input/summary_load_2011-2020-1h.csv"
-    outputfile = "input/ts_load_all.csv"
-
-    #original data
-    a = DataFrame(CSV.File(elecloadfile, 
-                            missingstring = "", 
-                            dateformat="yyyy-mm-dd HH:MM:SS",
-                            stringtype = String)
-                )
-    
-    # norway
-    transform!(a, [:NO_1, :NO_2, :NO_5] => (+) => :NOS0)
-    transform!(a, :NO_3 => identity => :NOM1)
-    transform!(a, :NO_4  => identity => :NON1)
-
-    #denmark
-    transform!(a, :DK_1 => identity => :DKW1)
-    transform!(a, :DK_2 => identity => :DKE1)
-
-    # combine Italy and some others into the same table
-    b = process_IT_load()
-    a = innerjoin(a, b, on = :time)
-
-    # write result
-    CSV.write(outputfile, a,  dateformat="yyyy-mm-dd HH:MM:SS")
 end
 
 """
@@ -107,5 +79,56 @@ function process_IT_load(;write = false)
 end
 
 
+function convertload()
 
-convertload()
+    elecloadfile = "input/summary_load_2011-2020-1h.csv"
+    outputfile = "input/ts_load_all.csv"
+
+    #original data
+    a = DataFrame(CSV.File(elecloadfile, 
+                            missingstring = "", 
+                            dateformat="yyyy-mm-dd HH:MM:SS",
+                            stringtype = String)
+                )
+    
+    #convert the Norway load areas
+    transform!(a, [:NO_1, :NO_2, :NO_5] => (+) => :NOS0)
+    transform!(a, :NO_3 => identity => :NOM1)
+    transform!(a, :NO_4  => identity => :NON1)
+
+    #denmark
+    transform!(a, :DK_1 => identity => :DKW1)
+    transform!(a, :DK_2 => identity => :DKE1)
+
+    # combine Italy and some others into the same table
+    b = process_IT_load()
+    a = innerjoin(a, b, on = :time)
+
+    # write result
+    CSV.write(outputfile, a,  dateformat="yyyy-mm-dd HH:MM:SS")
+end
+
+function process_hydrolimits()
+
+    filename = "input/summary_hydro_reservoir_limits_2015_2016_1h_MWh.csv"
+    outputfile = "input/ts_reservoir_limits.csv"
+
+       #original data
+       a = DataFrame(CSV.File(filename, 
+        missingstring = "", 
+        dateformat="yyyy-mm-dd HH:MM:SS",
+        stringtype = String))
+
+    b = extend_series(a, DateTime(2010,1,1), 2015, endtime = DateTime(2019,12,31))
+    println(first(b[:,1:5],6))
+
+    # write result
+    CSV.write(outputfile, b,  dateformat="yyyy-mm-dd HH:MM:SS")
+
+end
+
+
+
+
+#convertload()
+process_hydrolimits()

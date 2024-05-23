@@ -8,6 +8,7 @@ units:
       fuel: nuclear
       eleccapa: 4200
       subunits: 5
+      unit_commitment: integer
     - name:
       bidding_zone: FI00
       type: OCGT
@@ -595,6 +596,52 @@ units:
       type: steam-turbine
       fuel: coal
       eleccapa: 3700
+    - name:
+      bidding_zone: ITN1
+      type: ror
+      eleccapa: 5700
+      reservoir_capacity: 0
+    - name:
+      bidding_zone: ITN1
+      type: reservoir
+      eleccapa: 6300
+      reservoir_capacity: 3.7e6
+    - name:
+      bidding_zone: ITN1
+      type: PV
+      eleccapa: 14500
+    - name:
+      bidding_zone: ITN1
+      type: CCGT
+      fuel: gas
+      eleccapa: 24000
+    - name:
+      bidding_zone: ITN1
+      type: OCGT
+      fuel: gas
+      eleccapa: 600
+    - name:
+      bidding_zone: CH00
+      type: ror
+      eleccapa: 5700
+      reservoir_capacity: 0
+    - name:
+      bidding_zone: CH00
+      type: reservoir
+      eleccapa: 7800
+      reservoir_capacity: 7.8e6
+    - name:
+      bidding_zone: CH00
+      type: closed-loop
+      eleccapa: 1900
+      reservoir_capacity: 56000
+      pumpcapa: 1750
+    - name:
+      bidding_zone: CH00
+      type: nuclear
+      fuel: nuclear
+      eleccapa: 2800
+      subunits: 4
 unittypes:
   - scenario: Distributed Energy
     year: 2040
@@ -603,6 +650,7 @@ unittypes:
         efficiency: 0.35
         vom_cost: 4
         startup_cost: 1000
+        min_oper_point: 0.9
       steam-turbine:
         efficiency: 0.39
         vom_cost: 3
@@ -794,6 +842,22 @@ lines:
         to_zone: UK00
         export_capacity: 4000
         import_capacity: 4000
+      - from_zone: FR00
+        to_zone: ITN1
+        export_capacity: 3100
+        import_capacity: 1000
+      - from_zone: CH00
+        to_zone: DE00
+        export_capacity: 4000
+        import_capacity: 2600
+      - from_zone: CH00
+        to_zone: FR00
+        export_capacity: 1400
+        import_capacity: 3700
+      - from_zone: CH00
+        to_zone: ITN1
+        export_capacity: 4036
+        import_capacity: 1910
 parameters:
   - scenario: Distributed Energy
     year: 2040
@@ -803,12 +867,16 @@ parameters:
         - name:
           bidding_zone: NOS0
           type: open-loop
-          reservoir_level: 31e6
+          reservoir_level: 35e6
         - name:
           bidding_zone: NON1
           type: open-loop
-          reservoir_level: 9e6
-      model_start: 2015-02-10T00:00:00
+          reservoir_level: 11e6
+        - name:
+          bidding_zone: SE02
+          type: reservoir
+          reservoir_level: 8.0e6
+      model_start: 2016-01-01T00:00:00
 
 
         

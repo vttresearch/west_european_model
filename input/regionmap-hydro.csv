@@ -18,4 +18,7 @@ n_FR00_reservoir,FR00_reservoir
 n_UK00_ror,UK00_ror
 n_UK00_closed-loop,UK00_psClosed
 n_CH00_reservoir,CH00_reservoir
+n_CH00_closed-loop,CH00_psClosed
 n_CH00_ror,CH00_ror
+n_ITN1_reservoir,ITN1_reservoir
+n_ITN1_ror,ITN1_ror

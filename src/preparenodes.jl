@@ -56,6 +56,7 @@ function make_commoditynode(node, loads)
         ],
         :object_parameter_values => [
             ["node", node, "demand", unparse_db_value(1.0 * a)],
+            ["node", node, "node_slack_penalty", 1e5]
         ]
     )
 
@@ -157,7 +158,8 @@ function make_hydronode(node, nodeprops, inflow::DataFrame,
             ["node", node, "demand", unparse_db_value(a)],
             ["node", node, "has_state", true],
             ["node", node, "node_state_cap", unparse_db_value(ulim)],
-            ["node", node, "node_state_min", unparse_db_value(lolim)]
+            ["node", node, "node_state_min", unparse_db_value(lolim)],
+            #["node", node, "node_slack_penalty", 1e6]
         ]
     )
 

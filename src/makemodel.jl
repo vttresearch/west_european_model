@@ -1,12 +1,16 @@
 
 
-function basic_model()
+function basic_model(model_start::DateTime)
     # Set up basic model
 
     # temporal block
     r = ones(24) * Hour(1)
+    r = [r; ones(8) * Hour(3)]
     r = [r; ones(6) * Day(1)]
     r = [r; ones(12) * Day(30)]
+
+    # rolling duration
+    roldur = Day(3)
 
     println(sum(r))
     test_data = Dict(
@@ -23,7 +27,10 @@ function basic_model()
             ["output", "variable_om_costs"],
             ["output", "start_up_costs"],
             ["output", "connection_flow_costs"],
-            ["output", "node_state"]
+            ["output", "node_state"],
+            ["output", "node_slack_neg"],
+            ["output", "node_slack_pos"],
+            ["output", "constraint_nodal_balance"]
         ],
         :relationships => [
             #["model__temporal_block", ["instance", "hourly"]],
@@ -32,15 +39,19 @@ function basic_model()
         ],
         :object_parameter_values => [
             #["model", "instance", "model_start", Dict("type" => "date_time", "data" => "2022-01-01T00:00:00")],
-            ["model", "instance", "model_start", unparse_db_value(DateTime(2015,2,10))],
-            ["model", "instance", "model_end", unparse_db_value(DateTime(2015,2,10) + sum(r))],
+            ["model", "instance", "model_start", unparse_db_value(model_start)],
+            #["model", "instance", "model_end", unparse_db_value(model_start + sum(r))],
+            ["model", "instance", "model_end", unparse_db_value(model_start + roldur)],
+
             ["model", "instance", "duration_unit", "hour"],
-            ["model", "instance", "roll_forward", nothing],
-            
+            #["model", "instance", "roll_forward", nothing],
+            ["model", "instance", "roll_forward", Dict("type" => "duration", "data" => "24h")],
+
             ["temporal_block", "hourly", "resolution", unparse_db_value(r)],
             #["temporal_block", "hourly", "resolution", Dict("type" => "duration", "data" => "1h")],
             #["temporal_block", "hourly", "block_end", Dict("type" => "duration", "data" => "12D")],
-            
+            ["temporal_block", "hourly", "block_end", unparse_db_value(sum(r)) ],
+
             #["output", "unit_flow", "output_resolution", Dict("type" => "duration", "data" => "1h")],
             #["output", "variable_om_costs", "output_resolution", Dict("type" => "duration", "data" => "2D")],
             ["model", "instance", "db_mip_solver", "HiGHS.jl"],
@@ -109,7 +120,7 @@ function makemodel(filenames)
     lines_spi = readlines(filenames["mainmodel"], "Distributed Energy", 2040)
 
     mdata = mergedicts(units_spi, nodes_spi, lines_spi)
-    mdata = mergedicts(mdata, basic_model())
+    mdata = mergedicts(mdata, basic_model(params["model_start"]))
 
     create_spine_db(mdata)
 end

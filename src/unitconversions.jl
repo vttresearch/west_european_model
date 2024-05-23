@@ -118,6 +118,11 @@ function basic_generator_unit(u::unit, unittypes, fuels, params; addfuelname = f
     subunits = get(u.data, "subunits",1)
     subunitcapa = u.data["eleccapa"] / subunits
 
+    onlinetype = get(u.data, "unit_commitment","unit_online_variable_type_linear")
+    if onlinetype == "integer"
+        onlinetype = "unit_online_variable_type_integer"
+    end
+
     # for this type, startup cost is given per MW elec
     startupcost = subunitcapa * get(unittypes[u.data["type"]], "startup_cost", 0)
 
@@ -125,6 +130,7 @@ function basic_generator_unit(u::unit, unittypes, fuels, params; addfuelname = f
         :objects => [["unit", unitname], ],
         :object_parameter_values => [
             ["unit", unitname, "start_up_cost", startupcost],
+            ["unit", unitname, "online_variable_type", onlinetype],
         ],
         :relationships => [
             ["unit__to_node", [unitname, elecnode]],
@@ -271,12 +277,14 @@ function convert_unit(u::nuclear_unit, unittypes, fuels, ts_data, nodes, params)
     subunits = get(u.data, "subunits",1)
     
     # check if units_unavailable has been defined
-    f = nothing
     if hasproperty(ts_data["units_unavailable"], unitname)
         units_unavailable = convert_timeseries(ts_data["units_unavailable"], unitname)
     else
         units_unavailable = 0
     end
+
+    # min stable generation level
+    minoppoint = get(unittypes[u.data["type"]], "min_oper_point", 0.8)
 
     # additional unit data related to this unittype
     data2 = Dict(
@@ -285,7 +293,7 @@ function convert_unit(u::nuclear_unit, unittypes, fuels, ts_data, nodes, params)
             ["unit", unitname, "units_unavailable", unparse_db_value(units_unavailable)],
         ],
         :relationship_parameter_values => [
-            ["unit__to_node", [unitname, elecnode], "minimum_operating_point", 0.7],
+            ["unit__to_node", [unitname, elecnode], "minimum_operating_point", minoppoint],
             ["unit__node__node", [unitname, elecnode, fuelnode], 
                 "fix_ratio_out_in_unit_flow", efficiency] 
         ]
