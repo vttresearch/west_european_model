@@ -54,6 +54,7 @@ function createunitstruct(u1::Dict)
     elseif u1["type"] == "backpressure" return backpressure_unit(u1)
     elseif u1["type"] == "combined-cycle-chp" return backpressure_unit(u1)
     elseif u1["type"] == "elecboiler" return hp_unit(u1)
+    elseif u1["type"] == "heatpump" return hp_unit(u1)
     else
         throw(ArgumentError(u1["type"] ))
     end

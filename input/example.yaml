@@ -40,22 +40,33 @@ units:
       heatcapa: 800
     - name:
       bidding_zone: FI00
+      type: heatpump
+      heat_area:
+      heatcapa: 280
+    - name:
+      bidding_zone: FI00
       type: backpressure
       fuel: gas
       heat_area:
-      eleccapa: 700
+      eleccapa: 1000
     - name:
       bidding_zone: FI00
       type: backpressure
       fuel: biomass
       heat_area:
-      eleccapa: 500
+      eleccapa: 1000
     - name:
       bidding_zone: FI00
       type: backpressure
       fuel: coal
       heat_area:
-      eleccapa: 500
+      eleccapa: 160
+    - name:
+      bidding_zone: FI00
+      type: backpressure
+      fuel: msw
+      heat_area:
+      eleccapa: 100
     - name:
       bidding_zone: SE03
       type: reservoir
@@ -682,6 +693,9 @@ unittypes:
       elecboiler:
         efficiency_heat: 0.96
         vom_cost: 1
+      heatpump:
+        efficiency_heat: 2.8
+        vom_cost: 3
       backpressure:
         power_heat_ratio: 0.6
         efficiency_elec: 0.38
@@ -876,6 +890,10 @@ parameters:
           bidding_zone: SE02
           type: reservoir
           reservoir_level: 8.0e6
+        - name:
+          bidding_zone: FI00
+          type: reservoir
+          reservoir_level: 3.4e6
       model_start: 2016-01-01T00:00:00
 
 
