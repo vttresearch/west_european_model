@@ -28,7 +28,7 @@ end
 """
  Extend time series data by copying existing data
 """
-function extend_series(d, begintime, copyyear; endtime = nothing)
+function extend_series(d, begintime, copyyear; endtime = nothing, includeorig = false)
 
     # select a single year (and a bit more for leap years) 
     # from original data for copying
@@ -50,8 +50,11 @@ function extend_series(d, begintime, copyyear; endtime = nothing)
     a = select(a, Not([:hourofyear]))
     
     # combine the extended part
-    d = vcat(a,d)
-    return d
+    if includeorig == true
+        a = vcat(a,d)
+    end
+    
+    return a
 end
 
 """
@@ -69,7 +72,7 @@ function process_IT_load(;write = false)
                             dateformat="yyyy-mm-dd HH:MM:SS",
                             stringtype = String))
 
-    b = extend_series(a, DateTime(2010,1,1), 2017)
+    b = extend_series(a, DateTime(2010,1,1), 2017, includeorig = true)
     println(first(b,6))
 
     if write == true

@@ -653,6 +653,51 @@ units:
       fuel: nuclear
       eleccapa: 2800
       subunits: 4
+    - name:
+      bidding_zone: ES00
+      type: nuclear
+      fuel: nuclear
+      eleccapa: 7100
+      subunits: 8
+    - name:
+      bidding_zone: ES00
+      type: reservoir
+      eleccapa: 11000
+      reservoir_capacity: 14.7e6
+    - name:
+      bidding_zone: ES00
+      type: closed-loop
+      eleccapa: 3300
+      reservoir_capacity: 95000
+      pumpcapa: 3100
+    - name:
+      bidding_zone: ES00
+      type: ror
+      eleccapa: 3500
+      reservoir_capacity: 0
+    - name:
+      bidding_zone: ES00
+      type: PV
+      eleccapa: 32000
+    - name:
+      bidding_zone: ES00
+      type: onshore
+      eleccapa: 34500
+    - name:
+      bidding_zone: ES00
+      type: CCGT
+      fuel: gas
+      eleccapa: 22000
+    - name:
+      bidding_zone: ES00
+      type: OCGT
+      fuel: gas
+      eleccapa: 2500
+    - name:
+      bidding_zone: ES00
+      type: steam-turbine
+      fuel: coal
+      eleccapa: 600
 unittypes:
   - scenario: Distributed Energy
     year: 2040
@@ -856,6 +901,10 @@ lines:
         to_zone: UK00
         export_capacity: 4000
         import_capacity: 4000
+      - from_zone: FR00
+        to_zone: ES00
+        export_capacity: 2900
+        import_capacity: 2900
       - from_zone: FR00
         to_zone: ITN1
         export_capacity: 3100

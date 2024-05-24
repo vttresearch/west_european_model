@@ -22,3 +22,8 @@ n_CH00_closed-loop,CH00_psClosed
 n_CH00_ror,CH00_ror
 n_ITN1_reservoir,ITN1_reservoir
 n_ITN1_ror,ITN1_ror
+n_ES00_ror,ES00_ror
+n_ES00_reservoir,ES00_reservoir
+n_AT00_ror,AT00_ror
+n_AT00_reservoir,AT00_reservoir
+n_AT00_open-loop,AT00_psOpen
