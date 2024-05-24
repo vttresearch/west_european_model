@@ -10,7 +10,7 @@ function basic_model(model_start::DateTime)
     r = [r; ones(12) * Day(30)]
 
     # rolling duration
-    roldur = Day(3)
+    roldur = Day(7)
 
     println(sum(r))
     test_data = Dict(

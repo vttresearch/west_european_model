@@ -698,6 +698,36 @@ units:
       type: steam-turbine
       fuel: coal
       eleccapa: 600
+    - name:
+      bidding_zone: AT00
+      type: reservoir
+      eleccapa: 2780
+      reservoir_capacity: 769000
+    - name:
+      bidding_zone: AT00
+      type: open-loop
+      eleccapa: 4050
+      reservoir_capacity: 1.7e6
+      pumpcapa: 3500
+    - name:
+      bidding_zone: AT00
+      type: ror
+      eleccapa: 6500
+      reservoir_capacity: 0
+    - name:
+      bidding_zone: AT00
+      type: CCGT
+      fuel: gas
+      eleccapa: 3800
+    - name:
+      bidding_zone: AT00
+      type: OCGT
+      fuel: gas
+      eleccapa: 300
+    - name:
+      bidding_zone: AT00
+      type: onshore
+      eleccapa: 5500
 unittypes:
   - scenario: Distributed Energy
     year: 2040
@@ -710,12 +740,15 @@ unittypes:
       steam-turbine:
         efficiency: 0.39
         vom_cost: 3
+        startup_cost: 130
       OCGT:
         efficiency: 0.36
         vom_cost: 4
+        startup_cost: 60
       CCGT:
         efficiency: 0.55
-        vom_cost: 4
+        vom_cost: 1.6
+        startup_cost: 130
       onshore:
         vom_cost: 2
       offshore:
@@ -921,6 +954,18 @@ lines:
         to_zone: ITN1
         export_capacity: 4036
         import_capacity: 1910
+      - from_zone: AT00
+        to_zone: DE00
+        export_capacity: 4900
+        import_capacity: 4900
+      - from_zone: AT00
+        to_zone: CH00
+        export_capacity: 1200
+        import_capacity: 1200
+      - from_zone: AT00
+        to_zone: ITN1
+        export_capacity: 600
+        import_capacity: 600
 parameters:
   - scenario: Distributed Energy
     year: 2040
