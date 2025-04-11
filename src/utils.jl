@@ -17,14 +17,12 @@ function mergedicts(dicts...)
     return a
 end
 
-
 function mergedicts(dict1,dict2)
 
     # Find keys in dict1 only
     d1keys = setdiff(keys(dict1), keys(dict2))
     combined_dict = Dict{Symbol,Any}(key => dict1[key] for key in d1keys)
 
-    
     # Find keys in dict2 only
     d2keys = setdiff(keys(dict2), keys(dict1))
     for key in d2keys
@@ -54,14 +52,6 @@ function _load_test_data(db_url, test_data)
     #merge!(data, test_data)
     outputs = [d[2] for d in test_data[:objects] if d[1] == "output"]
     load_template(db_url, outputs)
-    #filter_v07_template_by_output(data, outputs)
-    #println(data[:objects])
-
-    #for d in data[:relationship_classes]
-    #    if in("output", d[2])
-    #        println(d)
-    #    end
-    #end
     _load_test_data_without_template(db_url, test_data)
 end
 
@@ -78,7 +68,6 @@ function filter_v07_template_by_output(data::Dict, outputs::Array{String,1})
 end
 
 function convert_timeseries(x::DataFrame, valcol = :value)
-
     x.time = DateTime.(x.time)
     y = TimeSeries(x[:,:time], x[:,valcol], false, false)     
 end

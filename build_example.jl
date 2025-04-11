@@ -1,7 +1,7 @@
 using Revise
 using Nordconvert
-#using Infiltrator
 
+# define the input files
 filenames = Dict("elecloadfile" => "input/ts_load_all.csv",
                 "loadmappingfile" => "input/regionmap.csv",
                 "heatloadfile" => "input/DH_2025_timeseries_summary.csv",
@@ -21,4 +21,5 @@ filenames = Dict("elecloadfile" => "input/ts_load_all.csv",
                 "offlinemappingfile" => "input/unitmap-offline.csv")
 
 
+# this will create the SpineOpt input DB 
 makemodel(filenames)
