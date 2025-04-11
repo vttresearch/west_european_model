@@ -19,9 +19,11 @@ function preparenodes(nodes, ts_data, params)
             d1 = make_vrenode(n, value, ts_data["cf_offshore"])
         elseif value["type"] == "PV"
             d1 = make_vrenode(n, value, ts_data["cf_pv"])
-        elseif value["type"] == "reservoir" || value["type"] == "open-loop" || 
+        elseif  value["type"] == "reservoir" || 
+                value["type"] == "open-loop" || 
                 value["type"] == "ror" || 
-                value["type"] == "closed-loop"
+                value["type"] == "closed-loop" ||
+                value["type"] == "battery"
             d1 = make_hydronode(n, value, ts_data["hydroinflow"], 
                                 ts_data["hydrolowerlimits"],
                                 ts_data["hydroupperlimits"],
@@ -56,7 +58,7 @@ function make_commoditynode(node, loads)
         ],
         :object_parameter_values => [
             ["node", node, "demand", unparse_db_value(1.0 * a)],
-            ["node", node, "node_slack_penalty", 1e5]
+            ["node", node, "node_slack_penalty", 1e4]
         ]
     )
 
@@ -159,7 +161,7 @@ function make_hydronode(node, nodeprops, inflow::DataFrame,
             ["node", node, "has_state", true],
             ["node", node, "node_state_cap", unparse_db_value(ulim)],
             ["node", node, "node_state_min", unparse_db_value(lolim)],
-            #["node", node, "node_slack_penalty", 1e6]
+            ["node", node, "node_slack_penalty", 1e5]
         ]
     )
 

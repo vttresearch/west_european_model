@@ -8,7 +8,6 @@ module Y
 end
 
 
-
 function runmodel()
     file_path_in = "output/test_in.sqlite"
     file_path_out = "output/my_test_out.sqlite"
@@ -16,7 +15,7 @@ function runmodel()
     url_in = "sqlite:///$file_path_in"
     url_out = "sqlite:///$file_path_out"
 
-    m = run_spineopt(url_in, url_out; log_level=0)
+    m = run_spineopt(url_in, url_out; log_level=3)
 end
 
 function checkresults()

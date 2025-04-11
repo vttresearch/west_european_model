@@ -4,13 +4,15 @@ function basic_model(model_start::DateTime)
     # Set up basic model
 
     # temporal block
+    #r = ones(24) * Hour(1)
     r = ones(24) * Hour(1)
     r = [r; ones(8) * Hour(3)]
     r = [r; ones(6) * Day(1)]
     r = [r; ones(12) * Day(30)]
 
     # rolling duration
-    roldur = Day(7)
+    roldur = Day(30)
+    #roldur = Day(2)
 
     println(sum(r))
     test_data = Dict(

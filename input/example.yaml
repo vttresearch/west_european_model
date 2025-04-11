@@ -6,7 +6,7 @@ units:
       bidding_zone: FI00
       type: nuclear
       fuel: nuclear
-      eleccapa: 4200
+      eleccapa: 4300
       subunits: 5
       unit_commitment: integer
     - name:
@@ -26,7 +26,7 @@ units:
       bidding_zone: FI00
       type: reservoir
       eleccapa: 2200
-      reservoir_capacity: 15000
+      reservoir_capacity: 4e6
     - name:
       bidding_zone: FI00
       type: boiler
@@ -45,7 +45,7 @@ units:
       heatcapa: 280
     - name:
       bidding_zone: FI00
-      type: backpressure
+      type: combined-cycle-chp
       fuel: gas
       heat_area:
       eleccapa: 1000
@@ -68,6 +68,15 @@ units:
       heat_area:
       eleccapa: 100
     - name:
+      bidding_zone: FI00
+      type: industrial-CHP
+      eleccapa: 1500
+      fuel: wood_waste
+    - name:
+      bidding_zone: FI00
+      type: DR-curtail-elec
+      eleccapa: 500
+    - name:
       bidding_zone: SE03
       type: reservoir
       eleccapa: 1970
@@ -86,7 +95,7 @@ units:
     - name:
       bidding_zone: SE03
       type: onshore
-      eleccapa: 4000
+      eleccapa: 3870
     - name:
       bidding_zone: SE03
       type: PV
@@ -128,7 +137,7 @@ units:
     - name:
       bidding_zone: SE02
       type: onshore
-      eleccapa: 4000
+      eleccapa: 6500
     - name:
       bidding_zone: SE01
       type: reservoir
@@ -137,7 +146,7 @@ units:
     - name:
       bidding_zone: SE01
       type: onshore
-      eleccapa: 4000
+      eleccapa: 3500
     - name:
       bidding_zone: SE04
       type: reservoir
@@ -146,7 +155,7 @@ units:
     - name:
       bidding_zone: SE04
       type: onshore
-      eleccapa: 2700
+      eleccapa: 2200
     - name:
       bidding_zone: SE04
       type: PV
@@ -739,16 +748,25 @@ unittypes:
         min_oper_point: 0.9
       steam-turbine:
         efficiency: 0.39
+        min_oper_point: 0.4
         vom_cost: 3
         startup_cost: 130
       OCGT:
         efficiency: 0.36
+        min_oper_point: 0.4
         vom_cost: 4
         startup_cost: 60
       CCGT:
         efficiency: 0.55
+        min_oper_point: 0.4
         vom_cost: 1.6
         startup_cost: 130
+      industrial-CHP:
+        efficiency: 0.25
+        min_oper_point: 0.6
+        vom_cost: 90
+        ramp_limit: 0.02
+        vector: elec
       onshore:
         vom_cost: 2
       offshore:
@@ -777,11 +795,32 @@ unittypes:
       backpressure:
         power_heat_ratio: 0.6
         efficiency_elec: 0.38
+        min_oper_point: 0.4
+        startup_cost: 200
         vom_cost: 3
       combined-cycle-chp:
         power_heat_ratio: 1.0
         efficiency_elec: 0.48
+        min_oper_point: 0.4
+        startup_cost: 200
         vom_cost: 3
+      DR-curtail-elec:
+        vector: elec
+        op_points:
+          - 0.2
+          - 0.4
+          - 0.6
+          - 0.8
+          - 1.0
+        heat_rate:
+          - 1.0
+          - 2.0
+          - 4.0
+          - 6.0
+          - 10.0
+        vom_cost: 10
+        base_cost: 15
+
 fuels:
   - scenario: Distributed Energy
     year: 2040
@@ -810,6 +849,9 @@ fuels:
       oilshale:
         price: 10.0
         co2_content: 80
+      wood_waste:
+        price: 5.0
+        co2_content: 0
 lines:
   - scenario: Distributed Energy
     year: 2040
@@ -922,6 +964,10 @@ lines:
         to_zone: NOS0
         export_capacity: 700
         import_capacity: 700
+      - from_zone: NL00
+        to_zone: UK00
+        export_capacity: 1000
+        import_capacity: 1000
       - from_zone: BE00
         to_zone: NL00
         export_capacity: 2400
