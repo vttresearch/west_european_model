@@ -3,6 +3,8 @@ Creation of the European energy market model for SpineOpt
 
 # Preparations
 
+Install Julia version 1.10 or greater.
+
 Make sure you have the needed input data in input folder. This includes
 
 * PECD CSV files for renewables capacity factors.
@@ -11,6 +13,13 @@ Make sure you have the needed input data in input folder. This includes
 * DH time series summary CSV file
 
 You can get these from the vttresearch/north_european_model repository.
+
+Run the command
+```
+>instantiate
+```
+
+to install dependencies.
 
 Run the scripts in **processinput** folder to render some time series in more suitable format.
 
